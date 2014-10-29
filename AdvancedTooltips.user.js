@@ -6,7 +6,6 @@
 // @projectPage		https://github.com/yLark/LeekWars-AdvancedTooltips
 // @downloadURL		https://github.com/yLark/LeekWars-AdvancedTooltips/raw/master/AdvancedTooltips.user.js
 // @updateURL		https://github.com/yLark/LeekWars-AdvancedTooltips/raw/master/AdvancedTooltips.user.js
-// @match      		http://leekwars.com
 // @match      		http://leekwars.com/*
 // @grant			GM_addStyle
 // @require			https://code.jquery.com/jquery-2.1.1.min.js
