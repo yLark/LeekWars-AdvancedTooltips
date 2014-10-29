@@ -2,9 +2,12 @@
 // @name       		LeekWars AdvancedTooltips
 // @version			0.1
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau
+// @author			yLark
+// @projectPage		https://github.com/yLark/LeekWars-AdvancedTooltips
+// @downloadURL		https://github.com/yLark/LeekWars-AdvancedTooltips/raw/master/AdvancedTooltips.user.js
+// @updateURL		https://github.com/yLark/LeekWars-AdvancedTooltips/raw/master/AdvancedTooltips.user.js
 // @match      		http://leekwars.com
 // @match      		http://leekwars.com/*
-// @author			yLark
 // @grant			GM_addStyle
 // @require			https://code.jquery.com/jquery-2.1.1.min.js
 // @require			https://raw.githubusercontent.com/websanova/mousestop/master/mousestop.min.js
