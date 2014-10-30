@@ -115,6 +115,7 @@ GM_addStyle('\
 
 // Création du div qui va accueillir tous les tooltips générés par le script
 var hover_tooltip = document.createElement('div');
+var timeOut = undefined;
 hover_tooltip.id = 'hover_tooltip';
 document.body.appendChild(hover_tooltip);
 
@@ -132,23 +133,30 @@ function set_event_listeners() {	// Recalcul des éléments à surveiller
 				var tooltip = document.getElementById(id);
 				if(tooltip != null && tooltip.style.display != 'none')	// Si le tooltip a déjà été créé et qu'il est affiché, on stop l'animation et on l'affiche. Permet d'annuler le fadeOut si on survole le lien après avoir survolé le tooltip
 					$('#' + id).stop().show().css('opacity', 1);
+				else
+					{
+						if(timeOut===undefined)
+							{
+								timeOut=setTimeout(function() { display_tooltip(target); }, 250);
+								
+							}
+					}
 			}
 		},
 		function() {	// hover, mouse out
+			if(timeOut!==undefined)
+			{
+				clearTimeout(timeOut);
+				timeOut= undefined;
+				
+			}
 			var target = match_test(this);
 			if(target != null)
 				$('#hover_tooltip_' + target.type + target.id).stop().fadeOut('fast');	// Masque le tooltip
 		}
 	);
-	
-	$element.mousestop(	// N'affiche ou créé le tooltip que quand la souris s'arrête de bouger sur l'élément. Ça permet d'éviter des appels ajax et affichages intempestifs lors d'un survol malheureux. mousestop est un event perso en @require dans le header du script
-		function() {
-			var target = match_test(this);
-			if(target != null) {
-				display_tooltip(target);
-			}
-		}
-	);
+
+
 }
 
 
