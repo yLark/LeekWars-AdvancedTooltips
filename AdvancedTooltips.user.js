@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name       		LeekWars AdvancedTooltips
-// @version			0.1
+// @version			0.1.1
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau
 // @author			yLark
 // @projectPage		https://github.com/yLark/LeekWars-AdvancedTooltips
@@ -118,37 +118,41 @@ var hover_tooltip = document.createElement('div');
 hover_tooltip.id = 'hover_tooltip';
 document.body.appendChild(hover_tooltip);
 
-var $element = $('a, div.leek');	// Élément à matcher : les liens et les div de class leek
+set_event_listeners();	// Appel initial, au lancement du script
 
-$element.hover(	// Au survol de l'élément
-	function() {	// mouse in
-		var target = match_test(this);
-		if(target != null) {
-			var id = 'hover_tooltip_' + target.type + target.id;
-			var tooltip = document.getElementById(id);
-			if(tooltip != null && tooltip.style.display != 'none')	// Si le tooltip a déjà été créé et qu'il est affiché, on stop l'animation et on l'affiche. Permet d'annuler le fadeOut si on survole le lien après avoir survolé le tooltip
-				$('#' + id).stop().show().css('opacity', 1);
+function set_event_listeners() {	// Recalcul des éléments à surveiller
+	
+	var $element = $('a, div.leek');	// Élément à matcher : les liens et les div de class leek
+	
+	$element.hover(	// Au survol de l'élément
+		function() {	// hover, mouse in
+			var target = match_test(this);
+			if(target != null) {
+				var id = 'hover_tooltip_' + target.type + target.id;
+				var tooltip = document.getElementById(id);
+				if(tooltip != null && tooltip.style.display != 'none')	// Si le tooltip a déjà été créé et qu'il est affiché, on stop l'animation et on l'affiche. Permet d'annuler le fadeOut si on survole le lien après avoir survolé le tooltip
+					$('#' + id).stop().show().css('opacity', 1);
+			}
+		},
+		function() {	// hover, mouse out
+			var target = match_test(this);
+			if(target != null)
+				$('#hover_tooltip_' + target.type + target.id).stop().fadeOut('fast');	// Masque le tooltip
 		}
-	},
-	function() {	// mouse out
-		var target = match_test(this);
-		if(target != null)
-			$('#hover_tooltip_' + target.type + target.id).stop().fadeOut('fast');	// Masque le tooltip
-	}
-);
-
-$element.mousestop(	// N'affiche ou créé le tooltip que quand la souris s'arrête de bouger sur l'élément. Ça permet d'éviter des appels ajax et affichages intempestifs lors d'un survol malheureux
-	function() {
-		var target = match_test(this);
-		if(target != null) {
-			display_tooltip(target);
+	);
+	
+	$element.mousestop(	// N'affiche ou créé le tooltip que quand la souris s'arrête de bouger sur l'élément. Ça permet d'éviter des appels ajax et affichages intempestifs lors d'un survol malheureux. mousestop est un event perso en @require dans le header du script
+		function() {
+			var target = match_test(this);
+			if(target != null) {
+				display_tooltip(target);
+			}
 		}
-	}
-);
+	);
+}
 
 
 function match_test(self) { // Contrôle que l'élément survolé est bien susceptible d'affiche un tooltip
-
 	if(!/menu|tabs/i.test(self.parentNode.id) && !/menu|tabs/i.test(self.parentNode.parentNode.id)){	// Exclusion des liens contenus dans le menu et dans les tabs. Évite de spammer des tooltips
 		
 		// Cas d'un div de class leek
@@ -180,31 +184,34 @@ function display_tooltip(target) {	// Créé le tooltip s'il n'a pas encore ét�
 		tooltip.innerHTML = '<img src="http://static.leekwars.com/image/loader.gif" alt="" style="display:block;margin:auto;">';
 		hover_tooltip.appendChild(tooltip);
 		
-		$('#' + id).bind('mouseover', function() {	// Créé un handler pour garder le tooltip affiché quand il est survolé
-			$(this).stop().show().css('opacity', 1);
-		});
-		$('#' + id).bind('mouseout', function() {	// Créé un handler pour masquer le tooltip quand il n'est plus survolé
-			$(this).stop().fadeOut('fast');
-		});
-		
 		var url = 'http://leekwars.com/' + target.type + '/' + target.id;
 		
+		// Récupère le contenu de la page cible via ajax
 		$.post(url, function(data) {	// Récupère la page cible du lien
 			tooltip.innerHTML = null;	// Supprime le gif de chargement
 			var $data = $(data);
 			
-			if(target.type === 'leek')	fill_leek(tooltip, target, $data);	// Si le lien pointe vers une page de poireau, on rempli le tooltip des données poireau
+			if(target.type === 'leek')		fill_leek(tooltip, target, $data);		// Si le lien pointe vers une page de poireau, on rempli le tooltip des données poireau
 			if(target.type === 'farmer')	fill_farmer(tooltip, target, $data);	// Si le lien pointe vers une page d'éleveur, on rempli le tooltip des données de l'éleveur
-			if(target.type === 'team')	fill_team(tooltip, target, $data);	// Si le lien pointe vers une page de team, on rempli le tooltip des données team
+			if(target.type === 'team')		fill_team(tooltip, target, $data);		// Si le lien pointe vers une page de team, on rempli le tooltip des données team
 			
 			$('#hover_tooltip .tooltip').remove();		// Supprime les div de class .tooltip, qui sont inutiles et provoquent des erreurs d'affichage
+		});
+		
+		// Créé un handler pour garder le tooltip affiché quand il est survolé
+		$('#' + id).bind('mouseover', function() {
+			$(this).stop().show().css('opacity', 1);
+		});
+		// Créé un handler pour masquer le tooltip quand il n'est plus survolé
+		$('#' + id).bind('mouseout', function() {
+			$(this).stop().fadeOut('fast');
 		});
 	}
 	
 	if(tooltip.style.display != 'block') {						// Si le tooltip vient d'être initialisé, ou s'il était masqué
 		tooltip.style.display = 'block';						// On l'affiche
 		var posX = mouse.x - 380/2;								// Calcul la nouvelle position en x
-		tooltip.style.left = ((posX < 10)?10:posX) + 'px';		// On (re)défini sa position x
+		tooltip.style.left = ((posX < 10)?10:posX) + 'px';		// On (re)défini sa position x (s'il dépasse de l'écran à gauche, on le recadre)
 		tooltip.style.top  = (mouse.y + 17) + 'px';				// On (re)défini sa position y
 	}
 }
@@ -216,6 +223,38 @@ document.addEventListener('mousemove', function(e) {
     mouse.y = e.pageY
 }, false);
 
+
+///////////////////////// Suivi des modifications du DOM /////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+var observeDOM = (function(){	// Code copied from here: http://stackoverflow.com/questions/3219758/detect-changes-in-the-dom
+	var MutationObserver = window.MutationObserver || window.WebKitMutationObserver,
+		eventListenerSupported = window.addEventListener;
+	
+	return function(obj, callback){
+		if( MutationObserver ){
+			// define a new observer
+			var obs = new MutationObserver(function(){
+				callback();
+			});
+			// have the observer observe foo for changes in children
+			obs.observe( obj, { childList:true, subtree:true });
+		}
+		else if( eventListenerSupported ){
+			obj.addEventListener('DOMNodeInserted', callback, false);
+			obj.addEventListener('DOMNodeRemoved', callback, false);
+		}
+	}
+})();
+
+// Observe a DOM element
+observeDOM(document.body, function(){ 
+	set_event_listeners();	// Si le DOM a changé, on relance l'écoute des évènements du script
+});
+
+
+///////////////////////// Création du contenu des tooltips /////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
 
 // Créé le contenu du tooltip leek
 function fill_leek(tooltip, target, $data) {
