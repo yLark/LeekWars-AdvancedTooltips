@@ -21,7 +21,7 @@ GM_addStyle('\
 	border: 2px solid #BBB;\
 	overflow: auto;\
 	position: absolute;\
-	z-index: 1000;\
+	z-index: 1001;\
 	font-size: 15px;\
 	color: black;\
 	text-align: center;\
