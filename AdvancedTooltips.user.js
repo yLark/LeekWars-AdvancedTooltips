@@ -160,7 +160,7 @@ GM_addStyle('\
 	color: #888;\
 	font-style: italic;\
 }\
-.hover_tooltip .report .hover_talent img {\
+.hover_tooltip .report .hover_fight_talent img {\
 	width: 18px;\
 	vertical-align: top;\
 }\
@@ -442,7 +442,7 @@ function fill_report(tooltip, target, $data) {
 	$data.find('#duration').addClass('duration');
 	$data.find('.name').removeClass('name').addClass('hover_name');
 	$data.find('.money').removeClass('money').addClass('hover_money');
-	$data.find('.talent').removeClass('talent').addClass('hover_talent');
+	$data.find('.talent').removeClass('talent').addClass('hover_fight_talent');
 	$data.find('.level').removeClass('level');
 	tooltip.innerHTML += $data.find('#report-general').html().replace(/id=/g, 'old_id=');	// Nettoie les id pour ne pas avoir de conflit
 }
