@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name       		LeekWars AdvancedTooltips
-// @version			0.1.1
+// @version			0.2
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau
 // @author			yLark
 // @projectPage		https://github.com/yLark/LeekWars-AdvancedTooltips
@@ -8,6 +8,8 @@
 // @updateURL		https://github.com/yLark/LeekWars-AdvancedTooltips/raw/master/AdvancedTooltips.user.js
 // @match      		http://leekwars.com/*
 // @grant			GM_addStyle
+// @grant			GM_getValue
+// @grant			GM_setValue
 // @require			https://code.jquery.com/jquery-2.1.1.min.js
 // @require			https://raw.githubusercontent.com/websanova/mousestop/master/mousestop.min.js
 // ==/UserScript==
@@ -111,7 +113,89 @@ GM_addStyle('\
 .widsom {\
 	color: black;\
 }\
+/* Fight report tooltip css*/\
+.hover_tooltip .report .name {\
+	text-align: left;\
+}\
+.hover_tooltip .duration {\
+	text-align: right;\
+	color: #777;\
+}\
+.hover_tooltip .report .hover_name {\
+	text-align: left;\
+}\
+.report .alive {\
+	margin-left: 23px;\
+}\
+.report .dead {\
+	background-image: url("http://static.leekwars.com/image/cross.png");\
+	width: 15px;\
+	height: 20px;\
+	display: inline-block;\
+	margin-right: 8px;\
+	vertical-align: bottom;\
+}\
+.hover_tooltip .hover_money {\
+	text-align: right !important;\
+}\
+.hover_tooltip .report {\
+	margin: 0px auto 20px;\
+	background: none repeat scroll 0% 0% #F8F8F8;\
+	border-collapse: collapse;\
+	width:100%;\
+}\
+.hover_tooltip .report td {\
+	border: 2px solid #ddd;\
+	text-align: center;\
+	padding: 2px 3px;\
+}\
+.report th {\
+	border: 2px solid #ddd;\
+	padding: 4px;\
+	background: white;\
+	font-weight: normal;\
+	color: #777;\
+}\
+.report .total {\
+	color: #888;\
+	font-style: italic;\
+}\
+.hover_tooltip .report .hover_talent img {\
+	width: 18px;\
+	vertical-align: top;\
+}\
+.hover_tooltip .hab {\
+	width: 18px;\
+	height: 18px;\
+	vertical-align: bottom;\
+	display: inline-block;\
+	background-image: url("http://static.leekwars.com/image/hab.png");\
+}\
+.hover_tooltip .report .bonus {\
+	background-color: #0075DF;\
+	color: white;\
+	font-weight: bold;\
+	padding: 0 4px;\
+	margin-left: 10px;\
+	border-radius: 3px;\
+}\
+.tiny_fight_link {\
+	float: left;\
+	opacity: 0.2;\
+	margin-left: 2px;\
+	margin-right: 2px;\
+}\
+.tiny_fight_link img {\
+	width: 16px;\
+}\
 ');
+
+
+// Initialisation des paramètres d'affichage des tooltips
+var display_method = GM_getValue('advanced_tooltips_display_method', 'mousestop');			// Méthode d'affichage des tooltips
+var delay_before_display = GM_getValue('advanced_tooltips_delay_before_display', 250);		// Délais d'affichage des tooltips
+if(isNaN(delay_before_display) || delay_before_display < 0) delay_before_display = 250;		// Contrôle qu'on a bien un entier positif
+
 
 // Création du div qui va accueillir tous les tooltips générés par le script
 var hover_tooltip = document.createElement('div');
@@ -141,14 +225,30 @@ function set_event_listeners() {	// Recalcul des éléments à surveiller
 		}
 	);
 	
-	$element.mousestop(	// N'affiche ou créé le tooltip que quand la souris s'arrête de bouger sur l'élément. Ça permet d'éviter des appels ajax et affichages intempestifs lors d'un survol malheureux. mousestop est un event perso en @require dans le header du script
-		function() {
-			var target = match_test(this);
-			if(target != null) {
-				display_tooltip(target);
+	if(display_method == 'mousestop') {	// Si l'utilisateur a choisi la méthode mouse stop
+	
+		$element.mousestop(delay_before_display,	// Affiche ou créé le tooltip que quand la souris s'arrête de bouger sur l'élément. Ça permet d'éviter des appels ajax et affichages intempestifs lors d'un survol malheureux. mousestop est un event perso en @require dans le header du script
+			function() {
+				var target = match_test(this);
+				if(target != null)
+					display_tooltip(target);
 			}
-		}
-	);
+		);
+	}else{		// Si l'utilisateur a choisi la méthode mouse over
+		var timer;
+		$element.hover(
+			function () {
+				var target = match_test(this);
+				timer = setTimeout(function () {	// On définit le timeout avec la valeur spécifiée par l'utilisateur
+					if(target != null)
+						display_tooltip(target);
+				}, delay_before_display);
+			},
+			function () {
+				clearTimeout(timer);	// Si on sort de l'élément avant la fin du timeout, on annule l'affichage du tooltip
+			}
+		);
+	}
 }
 
 
@@ -159,15 +259,19 @@ function match_test(self) { // Contrôle que l'élément survolé est bien susce
 		if(!isNaN(self.id) && self.id != '' && /leek/i.test(self.className))
 			return {type: 'leek', id: self.id};
 		
-		// Cas d'un lien href vers une page leek
-		if( /^http:\/\/leekwars.com\/(leek)\/([0-9]+)$/i.test(self.href))
-			return {type: RegExp.$1, id: RegExp.$2};
+		// Cas d'un lien href vers une page leek|fight|report
+		if( /^http:\/\/leekwars.com\/(leek|fight|report)\/([0-9]+)$/i.test(self.href)){
+			var link_type = ((RegExp.$1 == 'fight')?'report':RegExp.$1);
+			return {type: link_type, id: RegExp.$2};
+		}
 		
-		// Cas d'un lien xlink:href vers une page leek
-		if( /^(?:http:\/\/leekwars.com)?\/(leek)\/([0-9]+)$/i.test(self.getAttributeNS("http://www.w3.org/1999/xlink", "href")))
-			return {type: RegExp.$1, id: RegExp.$2};
+		// Cas d'un lien xlink:href vers une page leek|fight|report
+		if( /^(?:http:\/\/leekwars.com)?\/(leek|fight|report)\/([0-9]+)$/i.test(self.getAttributeNS("http://www.w3.org/1999/xlink", "href"))){
+			var link_type = ((RegExp.$1 == 'fight')?'report':RegExp.$1);
+			return {type: link_type, id: RegExp.$2};
+		}
 		
-		// Pages à prendre en charge dans les regex par la suite : |farmer|team|fight|report|tournament
+		// Pages à prendre en charge dans les regex par la suite : |farmer|team|tournament
 	}
 }
 
@@ -191,6 +295,7 @@ function display_tooltip(target) {	// Créé le tooltip s'il n'a pas encore ét�
 			tooltip.innerHTML = null;	// Supprime le gif de chargement
 			var $data = $(data);
 			
+			if(target.type === 'report')	fill_report(tooltip, target, $data);	// Si le lien pointe vers une page de rapport de combat, on rempli le tooltip des données du rapport
 			if(target.type === 'leek')		fill_leek(tooltip, target, $data);		// Si le lien pointe vers une page de poireau, on rempli le tooltip des données poireau
 			if(target.type === 'farmer')	fill_farmer(tooltip, target, $data);	// Si le lien pointe vers une page d'éleveur, on rempli le tooltip des données de l'éleveur
 			if(target.type === 'team')		fill_team(tooltip, target, $data);		// Si le lien pointe vers une page de team, on rempli le tooltip des données team
@@ -328,6 +433,20 @@ function fill_leek(tooltip, target, $data) {
 	tooltip.appendChild(chips);
 }
 
+// Créé le tooltip report
+function fill_report(tooltip, target, $data) {
+	tooltip.innerHTML += '<a class="tiny_fight_link" href="http://leekwars.com/fight/'  + target.id + '" title="Combat"><img src="http://static.leekwars.com/image/garden.png"></a>';
+	tooltip.innerHTML += '<a class="tiny_fight_link" href="http://leekwars.com/report/' + target.id + '" title="Rapport de combat"><img src="http://static.leekwars.com/image/forum.png"></a>';
+	
+	$data.find('.bar').remove();
+	$data.find('#duration').addClass('duration');
+	$data.find('.name').removeClass('name').addClass('hover_name');
+	$data.find('.money').removeClass('money').addClass('hover_money');
+	$data.find('.talent').removeClass('talent').addClass('hover_talent');
+	$data.find('.level').removeClass('level');
+	tooltip.innerHTML += $data.find('#report-general').html().replace(/id=/g, 'old_id=');	// Nettoie les id pour ne pas avoir de conflit
+}
+
 // Créé le tooltip farmer
 function fill_farmer(tooltip, target, $data) {
 	
@@ -336,4 +455,39 @@ function fill_farmer(tooltip, target, $data) {
 // Créé le tooltip team
 function fill_team(tooltip, target, $data) {
 	
+}
+
+
+
+
+// Insertion et gestion des paramètres d'affichage du tooltip
+if(document.URL == 'http://leekwars.com/settings') {
+	
+	// Insertion du code html dans le DOM
+	var tooltips_settings = document.createElement('div');
+	tooltips_settings.id = 'advanced_tooltips_settings';
+	tooltips_settings.innerHTML = '\
+		<h2>AdvancedTooltips</h2><br>\
+		<h3>Méthode d\'affichage des info-bulles</h3>\
+		<form id="advanced_tooltips_display_method">\
+			<input ' + ((display_method=='mouseover')?'checked ':' ') + 'type="radio" name="advanced_tooltips_display_method" id="advanced_tooltips_display_method_mouseover" value="mouseover"><label for="advanced_tooltips_display_method_mouseover">Au survol de l\'élément</label><br>\
+			<input ' + ((display_method=='mousestop')?'checked ':' ') + 'type="radio" name="advanced_tooltips_display_method" id="advanced_tooltips_display_method_mousestop" value="mousestop"><label for="advanced_tooltips_display_method_mousestop">À l\'arrêt de la souris sur l\'élément</label>\
+		</form><br>\
+		<h3>Délais avant affichage (ms)</h3>\
+		<input id="advanced_tooltips_delay_before_display" type="text" value="' + delay_before_display + '"></input>\
+		<br><br><br>\
+	';
+	var settings_container = document.getElementById('settings-container');
+	settings_container.insertBefore(tooltips_settings, settings_container.firstChild);
+	
+	// Listeners pour le suivi des modifications des paramètres
+	$('input[name="advanced_tooltips_display_method"]').change(function(){
+		display_method = $(this).val();
+		GM_setValue('advanced_tooltips_display_method', display_method);
+	});
+	
+	$('#advanced_tooltips_delay_before_display').change(function() {
+		delay_before_display = parseInt( $(this).val() );
+		GM_setValue('advanced_tooltips_delay_before_display', delay_before_display);
+	});
 }
