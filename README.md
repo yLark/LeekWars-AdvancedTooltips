@@ -5,7 +5,7 @@ Outil pour les joueurs du jeu [LeekWars](http://leekwars.com/).<br>
 [Topic sur le forum](http://leekwars.com/forum/category-7/topic-4288).<br>
 Script JavaScript pour GreaseMonkey ou TamperMonkey.
 
-Affiche une info-bulle au survol d'un lien ou d'un bloc pointant vers la page d'un poireau.
+Affiche une info-bulle au survol d'un lien ou d'un bloc pointant vers la page d'un poireau ou d'un combat.
 
 Images
 -------
