@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name       		LeekWars AdvancedTooltips
-// @version			0.2.1
+// @version			0.2.2
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau ou d'un rapport de combat
 // @author			yLark
 // @projectPage		https://github.com/yLark/LeekWars-AdvancedTooltips
@@ -336,16 +336,16 @@ function display_tooltip(target) {	// Créé le tooltip s'il n'a pas encore ét�
 
 // Défini la position du tooltip en fonction de sa taille et des contraintes des bordures de la page
 function position_tooltip(tooltip, document_height, posX, posY) {
-	tooltip.style.left = '0px';								// On redéfini la position x à zéro pour corriger un problème d'affichage avec les rapports de combats
+	//tooltip.style.left = '0px';								// On redéfini la position x à zéro pour corriger un problème d'affichage avec les rapports de combats
 	posX = posX - tooltip.offsetWidth / 2;					// Calcul la nouvelle position en x
 	posY = posY + 17;										// Calcul la nouvelle position en y
 	if(posX < 10) posX = 10;								// Si on dépasse à gauche
 	if(posX + tooltip.offsetWidth / 2 > window.innerWidth)	// Si on dépasse à droite
 		posX = window.innerWidth - tooltip.offsetWidth/2;
-	if(posY + tooltip.offsetHeight > document_height)		// Si on dépasse en bas
-		posY = document_height - tooltip.offsetHeight;
-	tooltip.style.left = posX + 'px';						// On (re)défini sa position x
-	tooltip.style.top  = posY + 'px';						// On (re)défini sa position y
+	if(posY + tooltip.offsetHeight > document_height)		// Si on dépasse en bas de la page
+		posY += -tooltip.offsetHeight - 30;
+	tooltip.style.left = posX + 'px';						// On (re)défini la position x
+	tooltip.style.top  = posY + 'px';						// On (re)défini la position y
 }
 
 
@@ -478,7 +478,7 @@ function fill_leek(tooltip, target, $data) {
 	tooltip.appendChild(chips);
 }
 
-// Créé le tooltip report
+// Créé le contenu du tooltip report
 function fill_report(tooltip, target, $data) {
 	
 	// Si le combat n'est pas encore généré ou en erreur, on supprime le div
@@ -511,12 +511,12 @@ function fill_report(tooltip, target, $data) {
 	tooltip.innerHTML += $data.find('#report-general').html().replace(/id=/g, 'old_id=');	// Nettoie les id pour ne pas avoir de conflit
 }
 
-// Créé le tooltip farmer
+// Créé le contenu du tooltip farmer
 function fill_farmer(tooltip, target, $data) {
 	
 }
 
-// Créé le tooltip team
+// Créé le contenu du tooltip team
 function fill_team(tooltip, target, $data) {
 	
 }
