@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       		LeekWars AdvancedTooltips
-// @version			0.2
-// @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau
+// @version			0.2.1
+// @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau ou d'un rapport de combat
 // @author			yLark
 // @projectPage		https://github.com/yLark/LeekWars-AdvancedTooltips
 // @downloadURL		https://github.com/yLark/LeekWars-AdvancedTooltips/raw/master/AdvancedTooltips.user.js
@@ -188,6 +188,12 @@ GM_addStyle('\
 .tiny_fight_link img {\
 	width: 16px;\
 }\
+.team_table {\
+	white-space: nowrap;\
+	display: inline-block;\
+	margin-left: 2px;\
+	margin-right: 2px;\
+}\
 ');
 
 
@@ -249,6 +255,10 @@ function set_event_listeners() {	// Recalcul des éléments à surveiller
 			}
 		);
 	}
+	
+/* 	$element.bind('destroyed', function() {
+		$('#hover_tooltip').children().hide();
+	}); */
 }
 
 
@@ -280,6 +290,9 @@ function display_tooltip(target) {	// Créé le tooltip s'il n'a pas encore ét�
 
 	var id = 'hover_tooltip_' + target.type + target.id;	// Génère l'id du tooltip
 	var tooltip = document.getElementById(id);
+	var document_height = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight);	// Récupère la hauteur de la page web. source : http://stackoverflow.com/questions/1145850/how-to-get-height-of-entire-document-with-javascript
+	var posX = mouse.x;
+	var posY = mouse.y;
 	
 	if(tooltip === null) {	// Si le tooltip contenant l'info sur le leek/farmer/team n'a pas encore été créé, on le créé
 		tooltip = document.createElement('div');
@@ -300,7 +313,8 @@ function display_tooltip(target) {	// Créé le tooltip s'il n'a pas encore ét�
 			if(target.type === 'farmer')	fill_farmer(tooltip, target, $data);	// Si le lien pointe vers une page d'éleveur, on rempli le tooltip des données de l'éleveur
 			if(target.type === 'team')		fill_team(tooltip, target, $data);		// Si le lien pointe vers une page de team, on rempli le tooltip des données team
 			
-			$('#hover_tooltip .tooltip').remove();		// Supprime les div de class .tooltip, qui sont inutiles et provoquent des erreurs d'affichage
+			$('#hover_tooltip .tooltip').remove();						// Supprime les div de class .tooltip, qui sont inutiles et provoquent des erreurs d'affichage
+			position_tooltip(tooltip, document_height, posX, posY);		// Repositionne le tooltip vu ses nouvelles dimensions
 		});
 		
 		// Créé un handler pour garder le tooltip affiché quand il est survolé
@@ -313,21 +327,46 @@ function display_tooltip(target) {	// Créé le tooltip s'il n'a pas encore ét�
 		});
 	}
 	
-	if(tooltip.style.display != 'block') {						// Si le tooltip vient d'être initialisé, ou s'il était masqué
-		tooltip.style.display = 'block';						// On l'affiche
-		var posX = mouse.x - 380/2;								// Calcul la nouvelle position en x
-		tooltip.style.left = ((posX < 10)?10:posX) + 'px';		// On (re)défini sa position x (s'il dépasse de l'écran à gauche, on le recadre)
-		tooltip.style.top  = (mouse.y + 17) + 'px';				// On (re)défini sa position y
+	if(tooltip.style.display != 'block') {		// Si le tooltip vient d'être initialisé, ou s'il était masqué
+		tooltip.style.display = 'block';		// On l'affiche
+		position_tooltip(tooltip, document_height, posX, posY);	// On place le tooltip dans la page
 	}
 }
 
+
+// Défini la position du tooltip en fonction de sa taille et des contraintes des bordures de la page
+function position_tooltip(tooltip, document_height, posX, posY) {
+	tooltip.style.left = '0px';								// On redéfini la position x à zéro pour corriger un problème d'affichage avec les rapports de combats
+	posX = posX - tooltip.offsetWidth / 2;					// Calcul la nouvelle position en x
+	posY = posY + 17;										// Calcul la nouvelle position en y
+	if(posX < 10) posX = 10;								// Si on dépasse à gauche
+	if(posX + tooltip.offsetWidth / 2 > window.innerWidth)	// Si on dépasse à droite
+		posX = window.innerWidth - tooltip.offsetWidth/2;
+	if(posY + tooltip.offsetHeight > document_height)		// Si on dépasse en bas
+		posY = document_height - tooltip.offsetHeight;
+	tooltip.style.left = posX + 'px';						// On (re)défini sa position x
+	tooltip.style.top  = posY + 'px';						// On (re)défini sa position y
+}
+
+
 // Suivi de la position de la souris
 var mouse = {x: 0, y: 0};
-document.addEventListener('mousemove', function(e) { 
+document.addEventListener('mousemove', function(e) {
     mouse.x = e.pageX;
     mouse.y = e.pageY
 }, false);
 
+
+/* // Special jQuery event for element removal : http://stackoverflow.com/questions/2200494/jquery-trigger-event-when-an-element-is-removed-from-the-dom/10172676#10172676
+(function($){
+  $.event.special.destroyed = {
+    remove: function(o) {
+      if (o.handler) {
+        o.handler()
+      }
+    }
+  }
+})(jQuery) */
 
 ///////////////////////// Suivi des modifications du DOM /////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
@@ -363,6 +402,12 @@ observeDOM(document.body, function(){
 
 // Créé le contenu du tooltip leek
 function fill_leek(tooltip, target, $data) {
+	
+	// Si le poireau n'existe pas ou est en erreur, on supprime le div
+	if($data.find('#page h1:contains("Poireau introuvable")').length != 0){
+		tooltip.parentNode.removeChild(tooltip);
+		return;
+	}
 	
 	// Ajout du nom du poireau
 	var leek = document.createElement('div');
@@ -435,8 +480,27 @@ function fill_leek(tooltip, target, $data) {
 
 // Créé le tooltip report
 function fill_report(tooltip, target, $data) {
+	
+	// Si le combat n'est pas encore généré ou en erreur, on supprime le div
+	if($data.find('#page h1:contains("404")').length != 0){
+		tooltip.parentNode.removeChild(tooltip);
+		return;
+	}
+	
 	tooltip.innerHTML += '<a class="tiny_fight_link" href="http://leekwars.com/fight/'  + target.id + '" title="Combat"><img src="http://static.leekwars.com/image/garden.png"></a>';
 	tooltip.innerHTML += '<a class="tiny_fight_link" href="http://leekwars.com/report/' + target.id + '" title="Rapport de combat"><img src="http://static.leekwars.com/image/forum.png"></a>';
+	
+	// S'il y a trop de poireaux, on affiche les tableaux de chaque équipe côte à côte
+	if($data.find('.name').length > 10){
+		$('<div class="teams_block"></div>').insertBefore( $data.find('h3').eq(0) );
+		$('<div class="team_table"></div><div class="team_table"></div>').appendTo( $data.find('.teams_block') );
+		$( $data.find('h3').eq(0) ).appendTo( $data.find('.team_table').eq(0) );
+		$( $data.find('h3').eq(1) ).appendTo( $data.find('.team_table').eq(1) );
+		$( $data.find('.report').eq(0) ).appendTo( $data.find('.team_table').eq(0) );
+		$( $data.find('.report').eq(1) ).appendTo( $data.find('.team_table').eq(0) );
+		$( $data.find('.report').eq(2) ).appendTo( $data.find('.team_table').eq(1) );
+		$( $data.find('.report').eq(3) ).appendTo( $data.find('.team_table').eq(1) );
+	}
 	
 	$data.find('.bar').remove();
 	$data.find('#duration').addClass('duration');
