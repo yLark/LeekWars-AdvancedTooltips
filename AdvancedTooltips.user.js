@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name       		LeekWars AdvancedTooltips
-// @version			0.2.2
+// @version			0.2.3
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau ou d'un rapport de combat
 // @author			yLark
 // @projectPage		https://github.com/yLark/LeekWars-AdvancedTooltips
@@ -74,16 +74,16 @@ GM_addStyle('\
 	width: 55px;\
 	vertical-align: bottom;\
 }\
-.hover_leek {\
+.hover_leek, .hover_farmer_main {\
 	float: left;\
 	font-weight: bold;\
 	font-size: 17px;\
 }\
-.hover_farmer {\
+.hover_farmer, .hover_team {\
 	text-align: right;\
 	margin-bottom: 6px;\
 }\
-.hover_farmer a {\
+.hover_farmer a, .hover_farmer_main a{\
 	color:#AAA;\
 }\
 .hover_talent {\
@@ -194,6 +194,19 @@ GM_addStyle('\
 	margin-left: 2px;\
 	margin-right: 2px;\
 }\
+.hover_leeks_table th {\
+	border: 2px solid #ddd;\
+	padding: 4px;\
+	background: white;\
+	font-weight: normal;\
+	color: #777;\
+}\
+.hover_leeks_table td {\
+	border: 2px solid #ddd;\
+	text-align: center;\
+	background: white;\
+	padding: 2px 3px;\
+}\
 ');
 
 
@@ -269,8 +282,8 @@ function match_test(self) { // Contrôle que l'élément survolé est bien susce
 		if(!isNaN(self.id) && self.id != '' && /leek/i.test(self.className))
 			return {type: 'leek', id: self.id};
 		
-		// Cas d'un lien href vers une page leek|fight|report
-		if( /^http:\/\/leekwars.com\/(leek|fight|report)\/([0-9]+)$/i.test(self.href)){
+		// Cas d'un lien href vers une page leek|fight|report|farmer
+		if( /^http:\/\/leekwars.com\/(leek|fight|report|farmer)\/([0-9]+)$/i.test(self.href)){
 			var link_type = ((RegExp.$1 == 'fight')?'report':RegExp.$1);
 			return {type: link_type, id: RegExp.$2};
 		}
@@ -281,7 +294,7 @@ function match_test(self) { // Contrôle que l'élément survolé est bien susce
 			return {type: link_type, id: RegExp.$2};
 		}
 		
-		// Pages à prendre en charge dans les regex par la suite : |farmer|team|tournament
+		// Pages à prendre en charge dans les regex par la suite : |team|tournament
 	}
 }
 
@@ -513,7 +526,94 @@ function fill_report(tooltip, target, $data) {
 
 // Créé le contenu du tooltip farmer
 function fill_farmer(tooltip, target, $data) {
+	// Ajout du nom de l'éleveur
+	var farmer = document.createElement('div');
+	var farmer_name = $data.find('#farmer').find('h1').text();
+	farmer.innerHTML = '<a title="Défier ' + farmer_name + '" id="challenge_farmer">' + farmer_name + '</div>';
+    $("#challenge_farmer").click(function() {
+		submitForm("garden_update", [
+			['challenge_farmer', target.id]
+		]);
+	});
+	farmer.className = 'hover_farmer_main';
+	tooltip.appendChild(farmer);
 	
+	// Ajout de l'équipe
+	var team = document.createElement('div');
+	team.innerHTML = '<a title="Équipe" href="' + $data.find('#team').find('a').attr('href') + '">[' + $data.find('#team').find('a').find('h2').text() + ']</a>';
+	team.className = 'hover_team';
+	tooltip.appendChild(team);
+	
+	// Ajout du conteneur de talent + ratio + nb poireaux
+	var hover_basic = document.createElement('div');
+	hover_basic.className = 'hover_basic';
+	tooltip.appendChild(hover_basic);
+	
+	// Ajout du talent
+	var talent = document.createElement('div');
+	if($data.find("#talent").text() != '') {	// Si le poireau a un talent
+		talent.innerHTML += '<img class="talent-icon" src="http://static.leekwars.com/image/talent.png">';
+		talent.innerHTML += $data.find("#talent").text();
+		talent.title = 'Talent';
+	}else{
+		talent.innerHTML += '-';
+	}
+	talent.className = 'hover_talent';
+	hover_basic.appendChild(talent);
+	
+	// Ajout du ratio
+	var ratio = document.createElement('div');
+	ratio.innerHTML = $data.find("#tt_fights").text();
+	ratio.className = 'ratio';
+	hover_basic.appendChild(ratio);
+    
+    //Ajout du nombre de poireaux
+    var leeks_count = document.createElement('div') ;
+    leeks_count.innerHTML = $data.find('.leek').length + ' Poireau' + (($data.find('.leek').length>1)?'x':'');
+    leeks_count.className = 'ratio';
+    hover_basic.appendChild(leeks_count) ;
+    
+    //ajout du tableau au tooltip
+    tooltip.innerHTML += '<table id="leeks_table_'+target.id+'" class="hover_leeks_table"><tbody><tr><th>Poireau</th><th>Niveau</th><th>Ratio</th>\
+       <th><img src="http://static.leekwars.com/image/talent.png" alt="Talent" title="Talent"></img></th>\
+       <th><img src="http://static.leekwars.com/image/icon_life.png" alt="Vie" title="Vie"></img></th>\
+       <th><img src="http://static.leekwars.com/image/icon_force.png" alt="Force" title="Force"></img></th>\
+       <th><img src="http://static.leekwars.com/image/icon_agility.png" alt="Agilit&eacute;" title="Agilit&eacute;"></img></th>\
+       <th><img src="http://static.leekwars.com/image/icon_widsom.png" alt="Sagesse" title="Sagesse"></img></th>\
+       <th><img src="http://static.leekwars.com/image/icon_frequency.png" alt="Fr&eacute;quence" title="Fr&eacute;quence"></img></th>\
+       <th><img src="http://static.leekwars.com/image/icon_tp.png" alt="PT" title="PT"></img></th>\
+       <th><img src="http://static.leekwars.com/image/icon_mp.png" alt="PM" title="PM"></img></th>\
+       <th><img src="http://static.leekwars.com/image/icon_cores.png" alt="C&oelig;urs" title="C&oelig;urs"></img></th>\
+    </tr></tbody></table>' ;
+    
+    // Extract des caractéristiques des leeks
+    $data.find('.leek').each(function(){
+        var id = $(this).attr('id');
+        var id = $(this).attr('id');
+        var name = /(\w+)/.exec($(this).text())[1]; //
+        var level = /^Niveau ([0-9]+)$/.exec($('span.level', $(this)).first().text())[1];
+        var talent = '' + $('div.talent', $(this)).first().text();
+        if(talent=='') talent = '-';
+        
+        // Récupère les données du poireau
+        $.post('http://leekwars.com/leek/' + id, function(leekdata){
+            var $leekdata = $(leekdata);
+            var ratio = /^Ratio : ([0-9]+\.[0-9]+)/.exec($leekdata.find("#tt_fights").text())[1];
+            var life = $leekdata.find('#lifespan').text();
+            var force = $leekdata.find('#forcespan').text();
+            var agility = $leekdata.find('#agilityspan').text();
+            var wisdom = $leekdata.find('#widsomspan').text();
+            var frequency = $leekdata.find('#frequencyspan').text();
+            var tp = $leekdata.find('#tpspan').text();
+            var mp = $leekdata.find('#mpspan').text();
+            var cores = $leekdata.find('#coresspan').text();
+            
+            $('#leeks_table_'+target.id+'').append($('<tr><td><a href="/leek/'+id+'">'+name+'</td>\
+                <td>'+level+'</td><td>'+ratio+'</td><td>'+talent+'</td><td>'+life+'</td>\
+                <td>'+force+'</td><td>'+agility+'</td><td>'+wisdom+'</td><td>'+frequency+'</td>\
+                <td>'+tp+'</td><td>'+mp+'</td><td>'+cores+'</td></tr>'));
+        });
+    }) ;    
 }
 
 // Créé le contenu du tooltip team
