@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       		LeekWars AdvancedTooltips
-// @version			0.2.3
-// @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau ou d'un rapport de combat
+// @version			0.3.1
+// @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @author			yLark
 // @projectPage		https://github.com/yLark/LeekWars-AdvancedTooltips
 // @downloadURL		https://github.com/yLark/LeekWars-AdvancedTooltips/raw/master/AdvancedTooltips.user.js
@@ -23,13 +23,12 @@ GM_addStyle('\
 	border: 2px solid #BBB;\
 	overflow: auto;\
 	position: absolute;\
-	z-index: 1001;\
 	font-size: 15px;\
 	color: black;\
 	text-align: center;\
 	min-width: 300px;\
 }\
-.hover_basic {\
+.AT_basic {\
 	column-count: 3;\
 	-moz-column-count: 3;\
 	-webkit-column-count: 3;\
@@ -39,14 +38,14 @@ GM_addStyle('\
 	-moz-column-count: 4;\
 	-webkit-column-count: 4;\
 }\
-.hover_stats, .hover_basic {\
+.hover_stats, .AT_basic {\
 	width: 260px;\
 	white-space: nowrap;\
 	margin: auto;\
 	margin-top: 3px;\
 	margin-bottom: 3px;\
 }\
-.hover_stats img, .hover_basic img {\
+.hover_stats img, .AT_basic img {\
 	width: 20px;\
 	vertical-align: middle;\
 	margin-right: 4px;\
@@ -74,16 +73,19 @@ GM_addStyle('\
 	width: 55px;\
 	vertical-align: bottom;\
 }\
-.hover_leek, .hover_farmer_main {\
+.AT_tooltip_name {\
 	float: left;\
 	font-weight: bold;\
 	font-size: 17px;\
 }\
-.hover_farmer, .hover_team {\
+.AT_tooltip_name a {\
+	cursor: pointer;\
+}\
+.AT_tooltip_subname {\
 	text-align: right;\
 	margin-bottom: 6px;\
 }\
-.hover_farmer a, .hover_farmer_main a{\
+.AT_tooltip_subname a {\
 	color:#AAA;\
 }\
 .hover_talent {\
@@ -207,14 +209,30 @@ GM_addStyle('\
 	background: white;\
 	padding: 2px 3px;\
 }\
+.hover_leeks_table img {\
+	width: 20px;\
+	height: 20px;\
+}\
+.AT_avatar {\
+	margin-right: 6px;\
+	float: left;\
+}\
+.AT_avatar img {\
+	width: 50px;\
+}\
+.AT_send_message img {\
+	width: 20px;\
+}\
 ');
 
 
 // Initialisation des paramètres d'affichage des tooltips
-var display_method = GM_getValue('advanced_tooltips_display_method', 'mousestop');			// Méthode d'affichage des tooltips
-var delay_before_display = GM_getValue('advanced_tooltips_delay_before_display', 250);		// Délais d'affichage des tooltips
-if(isNaN(delay_before_display) || delay_before_display < 0) delay_before_display = 250;		// Contrôle qu'on a bien un entier positif
+var display_method = GM_getValue('advanced_tooltips_display_method', 'mousestop');				// Méthode d'affichage des tooltips
+var delay_before_display = GM_getValue('advanced_tooltips_delay_before_display', 250);			// Délais d'affichage des tooltips
+if(isNaN(delay_before_display) || delay_before_display < 0) delay_before_display = 250;			// Contrôle qu'on a bien un entier positif
+var display_farmer_leek_table = GM_getValue('advanced_tooltips_display_farmer_leek_table', 1);	// Afficher ou non le tableau des poireaux d'un éleveur
 
+var z_index = 1000;	// Sera incrémenté à chaque affichage de tooltip. Permet de toujours avoir le dernier tooltip au-dessus des précédents
 
 // Création du div qui va accueillir tous les tooltips générés par le script
 var hover_tooltip = document.createElement('div');
@@ -225,7 +243,7 @@ set_event_listeners();	// Appel initial, au lancement du script
 
 function set_event_listeners() {	// Recalcul des éléments à surveiller
 	
-	var $element = $('a, div.leek');	// Élément à matcher : les liens et les div de class leek
+	var $element = $('a, div.leek, div.farmer');	// Élément à matcher : les liens et les div de class leek ou farmer
 	
 	$element.hover(	// Au survol de l'élément
 		function() {	// hover, mouse in
@@ -278,9 +296,9 @@ function set_event_listeners() {	// Recalcul des éléments à surveiller
 function match_test(self) { // Contrôle que l'élément survolé est bien susceptible d'affiche un tooltip
 	if(!/menu|tabs/i.test(self.parentNode.id) && !/menu|tabs/i.test(self.parentNode.parentNode.id)){	// Exclusion des liens contenus dans le menu et dans les tabs. Évite de spammer des tooltips
 		
-		// Cas d'un div de class leek
-		if(!isNaN(self.id) && self.id != '' && /leek/i.test(self.className))
-			return {type: 'leek', id: self.id};
+		// Cas d'un div de class leek|farmer
+		if(!isNaN(self.id) && self.id != '' && /(leek|farmer)/i.test(self.className))
+			return {type: RegExp.$1, id: self.id};
 		
 		// Cas d'un lien href vers une page leek|fight|report|farmer
 		if( /^http:\/\/leekwars.com\/(leek|fight|report|farmer)\/([0-9]+)$/i.test(self.href)){
@@ -288,13 +306,13 @@ function match_test(self) { // Contrôle que l'élément survolé est bien susce
 			return {type: link_type, id: RegExp.$2};
 		}
 		
-		// Cas d'un lien xlink:href vers une page leek|fight|report
-		if( /^(?:http:\/\/leekwars.com)?\/(leek|fight|report)\/([0-9]+)$/i.test(self.getAttributeNS("http://www.w3.org/1999/xlink", "href"))){
+		// Cas d'un lien xlink:href vers une page leek|fight|report|farmer
+		if( /^(?:http:\/\/leekwars.com)?\/(leek|fight|report|farmer)\/([0-9]+)$/i.test(self.getAttributeNS("http://www.w3.org/1999/xlink", "href"))){
 			var link_type = ((RegExp.$1 == 'fight')?'report':RegExp.$1);
 			return {type: link_type, id: RegExp.$2};
 		}
 		
-		// Pages à prendre en charge dans les regex par la suite : |team|tournament
+		// Pages à prendre en charge dans les regex par la suite : |team|tournament|forum
 	}
 }
 
@@ -342,6 +360,7 @@ function display_tooltip(target) {	// Créé le tooltip s'il n'a pas encore ét�
 	
 	if(tooltip.style.display != 'block') {		// Si le tooltip vient d'être initialisé, ou s'il était masqué
 		tooltip.style.display = 'block';		// On l'affiche
+		tooltip.style.zIndex = ++z_index;		// On affiche tooltip au-dessus des éventuels autres, et on incrémente le compteur
 		position_tooltip(tooltip, document_height, posX, posY);	// On place le tooltip dans la page
 	}
 }
@@ -426,25 +445,25 @@ function fill_leek(tooltip, target, $data) {
 	var leek = document.createElement('div');
 	var leek_name = $data.find('#leek').find('h1').text();
 	leek.innerHTML = '<a title="Défier ' + leek_name + '" href="/garden/challenge=' + target.id + '">' + leek_name + '</a>';
-	leek.className = 'hover_leek';
+	leek.className = 'AT_tooltip_name';
 	tooltip.appendChild(leek);
 	
 	// Ajout de l'éleveur
 	var farmer = document.createElement('div');
 	farmer.innerHTML = '<a title="Éleveur" href="' + $data.find('.leek-farmer').attr('href') + '">' + $data.find('.leek-farmer').html() + '</a>';
-	farmer.className = 'hover_farmer';
+	farmer.className = 'AT_tooltip_subname';
 	tooltip.appendChild(farmer);
 	
 	// Ajout du conteneur de level + talent + ratio
-	var hover_basic = document.createElement('div');
-	hover_basic.className = 'hover_basic';
-	tooltip.appendChild(hover_basic);
+	var AT_basic = document.createElement('div');
+	AT_basic.className = 'AT_basic';
+	tooltip.appendChild(AT_basic);
 	
 	// Ajout du level
 	var level = document.createElement('div');
 	level.className = 'hover_level';
 	level.innerHTML = $data.find('#leek-table').find('h2').text();
-	hover_basic.appendChild(level);
+	AT_basic.appendChild(level);
 	
 	// Ajout du talent
 	var talent = document.createElement('div');
@@ -456,25 +475,25 @@ function fill_leek(tooltip, target, $data) {
 		talent.innerHTML += '-';
 	}
 	talent.className = 'hover_talent';
-	hover_basic.appendChild(talent);
+	AT_basic.appendChild(talent);
 	
 	// Ajout du ratio
 	var ratio = document.createElement('div');
 	ratio.innerHTML = $data.find("#tt_fights").text();
 	ratio.className = 'ratio';
-	hover_basic.appendChild(ratio);
+	AT_basic.appendChild(ratio);
 	
 	// Ajout des statistiques du poireau
 	var stats = document.createElement('div');
 	stats.className = 'hover_stats';
-	stats.innerHTML += '<div>' + $data.find('#lifespan').html() + '</div>';
-	stats.innerHTML += '<div>' + $data.find('#frequencyspan').html() + '</div>';
-	stats.innerHTML += '<div>' + $data.find('#forcespan').html() + '</div>';
-	stats.innerHTML += '<div>' + $data.find('#tpspan').html() + '</div>';
-	stats.innerHTML += '<div>' + $data.find('#agilityspan').html() + '</div>';
-	stats.innerHTML += '<div>' + $data.find('#mpspan').html() + '</div>';
-	stats.innerHTML += '<div>' + $data.find('#widsomspan').html() + '</div>';
-	stats.innerHTML += '<div>' + $data.find('#coresspan').html() + '</div>';
+	stats.innerHTML += '<div title="Points de vie">' + $data.find('#lifespan').html() + '</div>';
+	stats.innerHTML += '<div title="Fréquence">' + $data.find('#frequencyspan').html() + '</div>';
+	stats.innerHTML += '<div title="Force">' + $data.find('#forcespan').html() + '</div>';
+	stats.innerHTML += '<div title="Points de tour">' + $data.find('#tpspan').html() + '</div>';
+	stats.innerHTML += '<div title="Agilité">' + $data.find('#agilityspan').html() + '</div>';
+	stats.innerHTML += '<div title="Points de mouvement">' + $data.find('#mpspan').html() + '</div>';
+	stats.innerHTML += '<div title="Sagesse">' + $data.find('#widsomspan').html() + '</div>';
+	stats.innerHTML += '<div title="Cœurs">' + $data.find('#coresspan').html() + '</div>';
 	stats.innerHTML = stats.innerHTML.replace(/id=/g, 'class=');
 	tooltip.appendChild(stats);
 	
@@ -526,28 +545,45 @@ function fill_report(tooltip, target, $data) {
 
 // Créé le contenu du tooltip farmer
 function fill_farmer(tooltip, target, $data) {
+	
+	// Ajout de l'avatar de l'éleveur
+	var avatar = document.createElement('div');
+	avatar.className = 'AT_avatar';
+	avatar.innerHTML = '<a title="Éleveur" href="http://leekwars.com/farmer/' + target.id + '"><img src="' + $data.find('#avatar').attr('src') + '"></a>';
+	tooltip.appendChild(avatar);
+	
 	// Ajout du nom de l'éleveur
 	var farmer = document.createElement('div');
-	var farmer_name = $data.find('#farmer').find('h1').text();
-	farmer.innerHTML = '<a title="Défier ' + farmer_name + '" id="challenge_farmer">' + farmer_name + '</div>';
-    $("#challenge_farmer").click(function() {
+	var farmer_name = $data.find('#page h1').text();
+	var connexion_state = 'state ' + $data.find('#page h1 span').attr('class');	// Est-ce que l'éleveur est connecté ?
+	farmer.innerHTML = '<a title="Défier ' + farmer_name + '" id="challenge_farmer_' + target.id + '">' + farmer_name + '</a><span class="' + connexion_state + '"></span>';
+	farmer.className = 'AT_tooltip_name';
+	tooltip.appendChild(farmer);
+	
+	if(farmer_name == 'Éleveur supprimé') return;	// Si l'éleveur n'existe plus, on ne continue pas le tooltip
+    
+	$('#challenge_farmer_' + target.id).click(function() {	// Fonction pour défier le farmer. Source : http://static.leekwars.com/script/farmer.js
 		submitForm("garden_update", [
 			['challenge_farmer', target.id]
 		]);
 	});
-	farmer.className = 'hover_farmer_main';
-	tooltip.appendChild(farmer);
 	
 	// Ajout de l'équipe
 	var team = document.createElement('div');
-	team.innerHTML = '<a title="Équipe" href="' + $data.find('#team').find('a').attr('href') + '">[' + $data.find('#team').find('a').find('h2').text() + ']</a>';
-	team.className = 'hover_team';
+	team.className = 'AT_tooltip_subname';
+	team.innerHTML = '<a title="Équipe" href="' + $data.find('#team a').attr('href') + '">' + $data.find('#team').text().trim() + '</a>';
 	tooltip.appendChild(team);
 	
 	// Ajout du conteneur de talent + ratio + nb poireaux
-	var hover_basic = document.createElement('div');
-	hover_basic.className = 'hover_basic';
-	tooltip.appendChild(hover_basic);
+	var AT_basic = document.createElement('div');
+	AT_basic.className = 'AT_basic';
+	tooltip.appendChild(AT_basic);
+	
+	// Ajout d'un lien pour envoyer un message
+	var send_message = document.createElement('div');
+	send_message.className = 'AT_send_message';
+	send_message.innerHTML = '<a title="Envoyer un message à ' + farmer_name + '" href="http://leekwars.com/messages/new/' + target.id + '"><img src="http://static.leekwars.com/image/messages.png" alt="Envoyer un message"></a>';
+	AT_basic.appendChild(send_message);
 	
 	// Ajout du talent
 	var talent = document.createElement('div');
@@ -559,61 +595,64 @@ function fill_farmer(tooltip, target, $data) {
 		talent.innerHTML += '-';
 	}
 	talent.className = 'hover_talent';
-	hover_basic.appendChild(talent);
+	AT_basic.appendChild(talent);
 	
 	// Ajout du ratio
 	var ratio = document.createElement('div');
 	ratio.innerHTML = $data.find("#tt_fights").text();
 	ratio.className = 'ratio';
-	hover_basic.appendChild(ratio);
+	AT_basic.appendChild(ratio);
     
-    //Ajout du nombre de poireaux
+    /* //Ajout du nombre de poireaux
     var leeks_count = document.createElement('div') ;
     leeks_count.innerHTML = $data.find('.leek').length + ' Poireau' + (($data.find('.leek').length>1)?'x':'');
     leeks_count.className = 'ratio';
-    hover_basic.appendChild(leeks_count) ;
+    AT_basic.appendChild(leeks_count); */
     
     //ajout du tableau au tooltip
-    tooltip.innerHTML += '<table id="leeks_table_'+target.id+'" class="hover_leeks_table"><tbody><tr><th>Poireau</th><th>Niveau</th><th>Ratio</th>\
-       <th><img src="http://static.leekwars.com/image/talent.png" alt="Talent" title="Talent"></img></th>\
-       <th><img src="http://static.leekwars.com/image/icon_life.png" alt="Vie" title="Vie"></img></th>\
-       <th><img src="http://static.leekwars.com/image/icon_force.png" alt="Force" title="Force"></img></th>\
-       <th><img src="http://static.leekwars.com/image/icon_agility.png" alt="Agilit&eacute;" title="Agilit&eacute;"></img></th>\
-       <th><img src="http://static.leekwars.com/image/icon_widsom.png" alt="Sagesse" title="Sagesse"></img></th>\
-       <th><img src="http://static.leekwars.com/image/icon_frequency.png" alt="Fr&eacute;quence" title="Fr&eacute;quence"></img></th>\
-       <th><img src="http://static.leekwars.com/image/icon_tp.png" alt="PT" title="PT"></img></th>\
-       <th><img src="http://static.leekwars.com/image/icon_mp.png" alt="PM" title="PM"></img></th>\
-       <th><img src="http://static.leekwars.com/image/icon_cores.png" alt="C&oelig;urs" title="C&oelig;urs"></img></th>\
-    </tr></tbody></table>' ;
-    
-    // Extract des caractéristiques des leeks
-    $data.find('.leek').each(function(){
-        var id = $(this).attr('id');
-        var id = $(this).attr('id');
-        var name = /(\w+)/.exec($(this).text())[1]; //
-        var level = /^Niveau ([0-9]+)$/.exec($('span.level', $(this)).first().text())[1];
-        var talent = '' + $('div.talent', $(this)).first().text();
-        if(talent=='') talent = '-';
-        
-        // Récupère les données du poireau
-        $.post('http://leekwars.com/leek/' + id, function(leekdata){
-            var $leekdata = $(leekdata);
-            var ratio = /^Ratio : ([0-9]+\.[0-9]+)/.exec($leekdata.find("#tt_fights").text())[1];
-            var life = $leekdata.find('#lifespan').text();
-            var force = $leekdata.find('#forcespan').text();
-            var agility = $leekdata.find('#agilityspan').text();
-            var wisdom = $leekdata.find('#widsomspan').text();
-            var frequency = $leekdata.find('#frequencyspan').text();
-            var tp = $leekdata.find('#tpspan').text();
-            var mp = $leekdata.find('#mpspan').text();
-            var cores = $leekdata.find('#coresspan').text();
-            
-            $('#leeks_table_'+target.id+'').append($('<tr><td><a href="/leek/'+id+'">'+name+'</td>\
-                <td>'+level+'</td><td>'+ratio+'</td><td>'+talent+'</td><td>'+life+'</td>\
-                <td>'+force+'</td><td>'+agility+'</td><td>'+wisdom+'</td><td>'+frequency+'</td>\
-                <td>'+tp+'</td><td>'+mp+'</td><td>'+cores+'</td></tr>'));
-        });
-    }) ;    
+	if(display_farmer_leek_table == 1) {	// Si l'option a été cochée dans les paramètres, on affiche
+	
+		tooltip.innerHTML += '<table id="leeks_table_'+target.id+'" class="hover_leeks_table"><tbody><tr><th>Poireau</th><th>Niveau</th><th>Ratio</th>\
+		   <th><img src="http://static.leekwars.com/image/talent.png" alt="Talent" title="Talent"></img></th>\
+		   <th><img src="http://static.leekwars.com/image/icon_life.png" alt="Points de vie" title="Points de vie"></img></th>\
+		   <th><img src="http://static.leekwars.com/image/icon_force.png" alt="Force" title="Force"></img></th>\
+		   <th><img src="http://static.leekwars.com/image/icon_agility.png" alt="Agilit&eacute;" title="Agilit&eacute;"></img></th>\
+		   <th><img src="http://static.leekwars.com/image/icon_widsom.png" alt="Sagesse" title="Sagesse"></img></th>\
+		   <th><img src="http://static.leekwars.com/image/icon_frequency.png" alt="Fr&eacute;quence" title="Fr&eacute;quence"></img></th>\
+		   <th><img src="http://static.leekwars.com/image/icon_tp.png" alt="Points de tour" title="Points de tour"></img></th>\
+		   <th><img src="http://static.leekwars.com/image/icon_mp.png" alt="Points de mouvement" title="Points de mouvement"></img></th>\
+		   <th><img src="http://static.leekwars.com/image/icon_cores.png" alt="C&oelig;urs" title="C&oelig;urs"></img></th>\
+		</tr></tbody></table>' ;
+		
+		// Extraction des caractéristiques des leeks
+		$data.find('.leek').each(function(){
+			var id = $(this).attr('id');
+			var name = /(\w+)/.exec($(this).text())[1]; //
+			var level = /^Niveau ([0-9]+)$/.exec($('span.level', $(this)).first().text())[1];
+			var talent = '' + $('div.talent', $(this)).first().text();
+			if(talent=='') talent = '-';
+			$('#leeks_table_' + target.id).append($('<tr id="farmer_leek_table_' + id + '"></tr>'));	// Prépare la ligne de chaque poireau. Permet de les garder toujours triés, même si les requêtes ajax arrivent dans le désordre
+			
+			// Récupère les données du poireau
+			$.post('http://leekwars.com/leek/' + id, function(leekdata){
+				var $leekdata = $(leekdata);
+				var ratio = /^Ratio : ([0-9]+\.[0-9]+)/.exec($leekdata.find("#tt_fights").text())[1];
+				var life = $leekdata.find('#lifespan').text();
+				var force = $leekdata.find('#forcespan').text();
+				var agility = $leekdata.find('#agilityspan').text();
+				var wisdom = $leekdata.find('#widsomspan').text();
+				var frequency = $leekdata.find('#frequencyspan').text();
+				var tp = $leekdata.find('#tpspan').text();
+				var mp = $leekdata.find('#mpspan').text();
+				var cores = $leekdata.find('#coresspan').text();
+				
+				$('#farmer_leek_table_' + id).append($('<td><a href="/leek/'+id+'">'+name+'</td>\
+					<td>'+level+'</td><td>'+ratio+'</td><td>'+talent+'</td><td>'+life+'</td>\
+					<td>'+force+'</td><td>'+agility+'</td><td>'+wisdom+'</td><td>'+frequency+'</td>\
+					<td>'+tp+'</td><td>'+mp+'</td><td>'+cores+'</td>'));
+			});
+		});
+	}
 }
 
 // Créé le contenu du tooltip team
@@ -636,9 +675,11 @@ if(document.URL == 'http://leekwars.com/settings') {
 		<form id="advanced_tooltips_display_method">\
 			<input ' + ((display_method=='mouseover')?'checked ':' ') + 'type="radio" name="advanced_tooltips_display_method" id="advanced_tooltips_display_method_mouseover" value="mouseover"><label for="advanced_tooltips_display_method_mouseover">Au survol de l\'élément</label><br>\
 			<input ' + ((display_method=='mousestop')?'checked ':' ') + 'type="radio" name="advanced_tooltips_display_method" id="advanced_tooltips_display_method_mousestop" value="mousestop"><label for="advanced_tooltips_display_method_mousestop">À l\'arrêt de la souris sur l\'élément</label>\
-		</form><br>\
-		<h3>Délais avant affichage (ms)</h3>\
+		</form>\
+		<br><h3>Délais avant affichage (ms)</h3>\
 		<input id="advanced_tooltips_delay_before_display" type="text" value="' + delay_before_display + '"></input>\
+		<br><br><h3>Info-bulle d\'éleveur</h3>\
+		<input ' + ((display_farmer_leek_table == 1)?'checked ':' ') + 'type="checkbox" name="advanced_tooltips_display_farmer_leek_table" id="advanced_tooltips_display_farmer_leek_table"><label for="advanced_tooltips_display_farmer_leek_table">Afficher le détail des poireaux de l\'éleveur</label><br>\
 		<br><br><br>\
 	';
 	var settings_container = document.getElementById('settings-container');
@@ -653,5 +694,10 @@ if(document.URL == 'http://leekwars.com/settings') {
 	$('#advanced_tooltips_delay_before_display').change(function() {
 		delay_before_display = parseInt( $(this).val() );
 		GM_setValue('advanced_tooltips_delay_before_display', delay_before_display);
+	});
+	
+	$('#advanced_tooltips_display_farmer_leek_table').change(function() {
+		display_farmer_leek_table = $(this).is(':checked') ? 1 : 0;
+		GM_setValue('advanced_tooltips_display_farmer_leek_table', display_farmer_leek_table);
 	});
 }
