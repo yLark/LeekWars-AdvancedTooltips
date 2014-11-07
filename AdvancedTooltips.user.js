@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name       		LeekWars AdvancedTooltips
-// @version			0.3.1
+// @version			0.3.2
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @author			yLark
 // @projectPage		https://github.com/yLark/LeekWars-AdvancedTooltips
@@ -528,10 +528,10 @@ function fill_report(tooltip, target, $data) {
 		$('<div class="team_table"></div><div class="team_table"></div>').appendTo( $data.find('.teams_block') );
 		$( $data.find('h3').eq(0) ).appendTo( $data.find('.team_table').eq(0) );
 		$( $data.find('h3').eq(1) ).appendTo( $data.find('.team_table').eq(1) );
-		$( $data.find('.report').eq(0) ).appendTo( $data.find('.team_table').eq(0) );
-		$( $data.find('.report').eq(1) ).appendTo( $data.find('.team_table').eq(0) );
-		$( $data.find('.report').eq(2) ).appendTo( $data.find('.team_table').eq(1) );
-		$( $data.find('.report').eq(3) ).appendTo( $data.find('.team_table').eq(1) );
+		
+		var nb_report = $data.find('.report').length;
+		for(var report_id = 0 ; report_id < nb_report; report_id++)
+			$( $data.find('.report').eq(report_id) ).appendTo( $data.find('.team_table').eq( Math.round((report_id+1)/nb_report*2)-1 ) );
 	}
 	
 	$data.find('.bar').remove();
