@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name       		LeekWars AdvancedTooltips
-// @version			0.3.3
+// @version			0.3.4
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @author			yLark
 // @projectPage		https://github.com/yLark/LeekWars-AdvancedTooltips
@@ -619,7 +619,7 @@ function fill_farmer(tooltip, target, $data) {
 		tooltip.innerHTML += '<table id="leeks_table_'+target.id+'" class="hover_leeks_table"><tbody><tr><th>Poireau</th><th>Niveau</th><th>Ratio</th>\
 		   <th><img src="http://static.leekwars.com/image/talent.png" alt="Talent" title="Talent"></img></th>\
 		   <th><img src="http://static.leekwars.com/image/icon_life.png" alt="Points de vie" title="Points de vie"></img></th>\
-		   <th><img src="http://static.leekwars.com/image/icon_force.png" alt="Force" title="Force"></img></th>\
+		   <th><img src="http://static.leekwars.com/image/icon_strength.png" alt="Force" title="Force"></img></th>\
 		   <th><img src="http://static.leekwars.com/image/icon_agility.png" alt="Agilit&eacute;" title="Agilit&eacute;"></img></th>\
 		   <th><img src="http://static.leekwars.com/image/icon_widsom.png" alt="Sagesse" title="Sagesse"></img></th>\
 		   <th><img src="http://static.leekwars.com/image/icon_frequency.png" alt="Fr&eacute;quence" title="Fr&eacute;quence"></img></th>\
