@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name       		LeekWars AdvancedTooltips
-// @version			0.3.4
+// @version			0.3.5
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @author			yLark
 // @projectPage		https://github.com/yLark/LeekWars-AdvancedTooltips
@@ -472,7 +472,7 @@ function fill_leek(tooltip, target, $data) {
 	// Ajout du talent
 	var talent = document.createElement('div');
 	if($data.find("#talent").text() != '') {	// Si le poireau a un talent
-		talent.innerHTML += '<img class="talent-icon" src="http://static.leekwars.com/image/talent.png">';
+		talent.innerHTML += '<img src="http://static.leekwars.com/image/talent.png">';
 		talent.innerHTML += $data.find("#talent").text();
 		talent.title = 'Talent';
 	}else{
@@ -492,7 +492,7 @@ function fill_leek(tooltip, target, $data) {
 	stats.className = 'hover_stats';
 	stats.innerHTML += '<div title="Points de vie">' + $data.find('#lifespan').html() + '</div>';
 	stats.innerHTML += '<div title="Fréquence">' + $data.find('#frequencyspan').html() + '</div>';
-	stats.innerHTML += '<div title="Force">' + $data.find('#forcespan').html() + '</div>';
+	stats.innerHTML += '<div title="Force">' + $data.find('#strengthspan').html() + '</div>';
 	stats.innerHTML += '<div title="Points de tour">' + $data.find('#tpspan').html() + '</div>';
 	stats.innerHTML += '<div title="Agilité">' + $data.find('#agilityspan').html() + '</div>';
 	stats.innerHTML += '<div title="Points de mouvement">' + $data.find('#mpspan').html() + '</div>';
@@ -592,7 +592,7 @@ function fill_farmer(tooltip, target, $data) {
 	// Ajout du talent
 	var talent = document.createElement('div');
 	if($data.find("#talent").text() != '') {	// Si le poireau a un talent
-		talent.innerHTML += '<img class="talent-icon" src="http://static.leekwars.com/image/talent.png">';
+		talent.innerHTML += '<img src="http://static.leekwars.com/image/talent.png">';
 		talent.innerHTML += $data.find("#talent").text();
 		talent.title = 'Talent';
 	}else{
