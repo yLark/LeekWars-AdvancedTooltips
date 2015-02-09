@@ -644,7 +644,7 @@ function fill_farmer(tooltip, target, $data) {
 				var $leekdata = $(leekdata);
 				var ratio = /^Ratio : ([0-9]+\.[0-9]+)/.exec($leekdata.find("#tt_fights").text())[1];
 				var life = $leekdata.find('#lifespan').text();
-				var force = $leekdata.find('#forcespan').text();
+				var force = $leekdata.find('#strengthspan').text();
 				var agility = $leekdata.find('#agilityspan').text();
 				var wisdom = $leekdata.find('#widsomspan').text();
 				var frequency = $leekdata.find('#frequencyspan').text();
