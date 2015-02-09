@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name       		LeekWars AdvancedTooltips
-// @version			0.3.5
+// @version			0.3.6
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @author			yLark
 // @projectPage		https://github.com/yLark/LeekWars-AdvancedTooltips
@@ -94,7 +94,7 @@ GM_addStyle('\
 .life {\
 	color: red;\
 }\
-.force {\
+.strength {\
 	color: #833100;\
 }\
 .agility {\
