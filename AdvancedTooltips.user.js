@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name       		LeekWars AdvancedTooltips
-// @version			0.3.6
+// @version			0.3.7
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @author			yLark
 // @projectPage		https://github.com/yLark/LeekWars-AdvancedTooltips
@@ -345,8 +345,26 @@ function display_tooltip(target) {	// Créé le tooltip s'il n'a pas encore ét�
 			
 			if(target.type === 'report')	fill_report(tooltip, target, $data);	// Si le lien pointe vers une page de rapport de combat, on rempli le tooltip des données du rapport
 			if(target.type === 'leek')		fill_leek(tooltip, target, $data);		// Si le lien pointe vers une page de poireau, on rempli le tooltip des données poireau
-			if(target.type === 'farmer')	fill_farmer(tooltip, target, $data);	// Si le lien pointe vers une page d'éleveur, on rempli le tooltip des données de l'éleveur
-			if(target.type === 'team')		fill_team(tooltip, target, $data);		// Si le lien pointe vers une page de team, on rempli le tooltip des données team
+			if(target.type === 'farmer'){// Si le lien pointe vers une page d'éleveur, on rempli le tooltip des données de l'éleveur
+				fill_farmer(tooltip, target, $data);
+			  // Fonction pour défier le farmer. Source : http://static.leekwars.com/script/farmer.js
+			  $('#challenge_farmer_' + target.id)[0].onclick = (function(){
+			    var farmer = /([0-9]+)/.exec($(this).attr('id'))[0] ;
+					var form = $('<form>', {
+		        'method': 'post',
+            'action': '/garden_update'
+          });
+				  form.append($('<input>', {
+  	        'name': 'challenge_farmer',
+	          'value': '' + farmer,
+	          'type': 'hidden'
+	        }));
+	        form.append($('<input>', {'name': 'token', 'value': unsafeWindow.__TOKEN, 'type': 'hidden'})) ;
+  	      $("body").append(form);
+          form.submit();
+        }) ;
+			}
+		  if(target.type === 'team')		fill_team(tooltip, target, $data);		// Si le lien pointe vers une page de team, on rempli le tooltip des données team
 			
 			$('#hover_tooltip .tooltip').remove();						// Supprime les div de class .tooltip, qui sont inutiles et provoquent des erreurs d'affichage
 			position_tooltip(tooltip, document_height, posX, posY);		// Repositionne le tooltip vu ses nouvelles dimensions
@@ -566,12 +584,6 @@ function fill_farmer(tooltip, target, $data) {
 	
 	if(farmer_name == 'Éleveur supprimé') return;	// Si l'éleveur n'existe plus, on ne continue pas le tooltip
     
-	$('#challenge_farmer_' + target.id).click(function() {	// Fonction pour défier le farmer. Source : http://static.leekwars.com/script/farmer.js
-		submitForm("garden_update", [
-			['challenge_farmer', target.id]
-		]);
-	});
-	
 	// Ajout de l'équipe
 	var team = document.createElement('div');
 	team.className = 'AT_tooltip_subname';
@@ -634,7 +646,7 @@ function fill_farmer(tooltip, target, $data) {
 		$data.find('.leek').each(function(){
 			var id = $(this).attr('id');
 			var name = /(\w+)/.exec($(this).text())[1]; //
-			var level = /^Niveau ([0-9]+)$/.exec($('span.level', $(this)).first().text())[1];
+			var level = /([0-9]+)$/.exec($('span.level', $(this)).first().text())[1];
 			var talent = '' + $('div.talent', $(this)).first().text();
 			if(talent=='') talent = '-';
 			$('#leeks_table_' + target.id).append($('<tr id="farmer_leek_table_' + id + '"></tr>'));	// Prépare la ligne de chaque poireau. Permet de les garder toujours triés, même si les requêtes ajax arrivent dans le désordre
@@ -642,7 +654,7 @@ function fill_farmer(tooltip, target, $data) {
 			// Récupère les données du poireau
 			$.post('http://leekwars.com/leek/' + id, function(leekdata){
 				var $leekdata = $(leekdata);
-				var ratio = /^Ratio : ([0-9]+\.[0-9]+)/.exec($leekdata.find("#tt_fights").text())[1];
+				var ratio = /([0-9]+\.[0-9]+)/.exec($leekdata.find("#tt_fights").text())[1];
 				var life = $leekdata.find('#lifespan').text();
 				var force = $leekdata.find('#strengthspan').text();
 				var agility = $leekdata.find('#agilityspan').text();
@@ -671,24 +683,25 @@ function fill_farmer(tooltip, target, $data) {
 				avgMP = (avgMP*(leek_no - 1) + Math.floor(mp))/leek_no ;
 				avgCores = (avgCores*(leek_no - 1) + Math.floor(cores))/leek_no ;
 				
-				$('#leeks_table_' + target.id + ' td#sum_level').html(Math.floor(avgLevel)) ;
+				$('#leeks_table_' + target.id + ' td#avg_level').html(Math.floor(avgLevel)) ;
 				$('#leeks_table_' + target.id + ' td#avg_ratio').html(Math.floor(avgRatio*100)/100) ;
 				$('#leeks_table_' + target.id + ' td#avg_talent').html(Math.floor(avgTalent)) ;
-				$('#leeks_table_' + target.id + ' td#sum_life').html(Math.floor(avgLife)) ;
-				$('#leeks_table_' + target.id + ' td#sum_force').html(Math.floor(avgForce)) ;
-				$('#leeks_table_' + target.id + ' td#sum_agility').html(Math.floor(avgAgility)) ;
-				$('#leeks_table_' + target.id + ' td#sum_wisdom').html(Math.floor(avgWisdom)) ;
+				$('#leeks_table_' + target.id + ' td#avg_life').html(Math.floor(avgLife)) ;
+				$('#leeks_table_' + target.id + ' td#avg_force').html(Math.floor(avgForce)) ;
+				$('#leeks_table_' + target.id + ' td#avg_agility').html(Math.floor(avgAgility)) ;
+				$('#leeks_table_' + target.id + ' td#avg_wisdom').html(Math.floor(avgWisdom)) ;
 				$('#leeks_table_' + target.id + ' td#avg_freq').html(Math.floor(avgFreq)) ;
-				$('#leeks_table_' + target.id + ' td#sum_tp').html(Math.floor(avgTP*10)/10) ;
-				$('#leeks_table_' + target.id + ' td#sum_mp').html(Math.floor(avgMP*10)/10) ;
-				$('#leeks_table_' + target.id + ' td#sum_cores').html(Math.floor(avgCores*10)/10) ;
+				$('#leeks_table_' + target.id + ' td#avg_tp').html(Math.floor(avgTP*10)/10) ;
+				$('#leeks_table_' + target.id + ' td#avg_mp').html(Math.floor(avgMP*10)/10) ;
+				$('#leeks_table_' + target.id + ' td#avg_cores').html(Math.floor(avgCores*10)/10) ;
 				
 			});
 		});
 		
 		// Ajout d'une ligne de sommes / moyennes
-		$('#leeks_table_' + target.id).append($('<tr class="total"><td>Moyennes</td><td id="sum_level">0</td><td id="avg_ratio">0</td><td id="avg_talent">0</td>\
-<td id="sum_life">0</td><td id="sum_force">0</td><td id="sum_agility">0</td><td id="sum_wisdom">0</td><td id="avg_freq">0</td><td id="sum_tp">0</td><td id="sum_mp">0</td><td id="sum_cores">0</td></tr>')) ;
+		$('#leeks_table_' + target.id).append($('<tr class="total"><td>Moyennes</td><td id="avg_level">0</td><td id="avg_ratio">0</td><td id="avg_talent">0</td>\
+<td id="avg_life">0</td><td id="avg_force">0</td><td id="avg_agility">0</td><td id="avg_wisdom">0</td><td id="avg_freq">0</td><td id="avg_tp">0</td><td id="avg_mp">0</td>\
+<td id="avg_cores">0</td></tr>')) ;
 	}
 }
 
