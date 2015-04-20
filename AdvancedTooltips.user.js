@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       		LeekWars AdvancedTooltips
-// @version			0.3.7
-// @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
+// @version			0.3.8
+// @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat ou d'une image de puce ou d'arme
 // @author			yLark
 // @projectPage		https://github.com/yLark/LeekWars-AdvancedTooltips
 // @downloadURL		https://github.com/yLark/LeekWars-AdvancedTooltips/raw/master/AdvancedTooltips.user.js
@@ -227,6 +227,137 @@ GM_addStyle('\
 .AT_send_message img {\
 	width: 20px;\
 }\
+.hover_item_preview {\
+	margin: auto;\
+	border: 2px solid #ddd;\
+	text-align: center;\
+}\
+.hover_item_preview .header {\
+	background-color: #ddd;\
+	padding: 2px 5px;\
+	height: 25px;\
+	\
+} \
+.hover_item_preview .name { \
+	float: left;\
+	font-size: 19px;\
+	color: black;\
+	margin: 0;\
+}\
+.hover_item_preview .level {\
+	float: right;\
+	font-size: 16px; \
+	color: #777;\
+}\
+.hover_item_preview .image {\
+	height: 80px;\
+	position: relative;\
+}\
+.hover_item_preview .image img {\
+	position: absolute;\
+	top:0;\
+	bottom:0;\
+	left: 0; right: 0; \
+	margin: auto; \
+}\
+.hover_item_preview .desc {\
+	text-align: justify;\
+	font-size: 14px;\
+	color: #777;\
+	padding: 5px;\
+}\
+.hover_item_preview .stats div { \
+	padding: 4px;\
+}\
+.hover_item_preview .stats div img {\
+	vertical-align: bottom;\
+}\
+.hover_item_preview .stats div:nth-child(2n+1) {\
+	background-color: white;\
+}\
+.hover_item_preview .ennemies, \
+.hover_item_preview .allies, \
+.hover_item_preview .player, \
+.hover_item_preview .not-player,\
+.hover_item_preview .summons\
+{\
+	width: 14px;\
+	height: 14px;\
+	display: inline-block;\
+	vertical-align: middle;\
+	margin-left: 10px;\
+}\
+.hover_item_preview .ennemies {\
+	background-color: red;\
+}\
+.hover_item_preview .allies {\
+	background-color: blue;\
+}\
+.hover_item_preview .player {\
+	background-color: black;\
+}\
+.hover_item_preview .not-player {\
+	background-color: white;\
+	border: 2px solid #555;\
+	width: 10px;\
+	height: 10px;\
+}\
+.hover_item_preview .summons {\
+	background-color: red;\
+}\
+.hover_item_preview .constant {\
+	text-align: left;\
+	color: #555;\
+	font-size: 13px;\
+	padding: 4px;\
+}\
+.hover_item_preview .area {\
+	border-collapse: separate;\
+	border-spacing: 1px;\
+	margin: 3px auto;\
+}\
+.hover_item_preview .area td {\
+	width: 6px;\
+	height: 6px;\
+	background: #eee;\
+}\
+.hover_item_preview .area td.full {\
+	background: #999;\
+}\
+.hover_item_preview .stats .leek-preview {\
+	padding: 10px;\
+}\
+.hover_item_preview .summon h3 {\
+	margin: 6px;\
+	text-align: left;\
+	font-size: 15px;\
+}\
+.hover_item_preview .summon table {\
+	width: auto;\
+	margin: 0 auto;\
+}\
+.hover_item_preview .summon .summon-image {\
+	display: inline-block;\
+	margin-right: 10px;\
+	margin-left: 10px;\
+}\
+.hover_item_preview .summon .characs {\
+	text-align: left;\
+}\
+.hover_item_preview .summon .charac {\
+	text-align: left;\
+	padding: 2px 4px;\
+}\
+.hover_item_preview .summon .charac span {\
+	display: inline-block;\
+	margin-top: 3px;\
+	vertical-align: top;\
+	margin-left: 2px;\
+}\
+.hover_item_preview .summon .chips .chip {\
+	width: 50px;\
+	margin: 3px;\
+}\
 ');
 
 
@@ -247,7 +378,7 @@ set_event_listeners();	// Appel initial, au lancement du script
 
 function set_event_listeners() {	// Recalcul des éléments à surveiller
 	
-	var $element = $('a, div.leek, div.farmer');	// Élément à matcher : les liens et les div de class leek ou farmer
+	var $element = $('a, img, div.leek, div.farmer');	// Élément à matcher : les liens et les div de class leek ou farmer
 	
 	$element.hover(	// Au survol de l'élément
 		function() {	// hover, mouse in
@@ -316,6 +447,11 @@ function match_test(self) { // Contrôle que l'élément survolé est bien susce
 			return {type: link_type, id: RegExp.$2};
 		}
 		
+		// Cas d'une image de chip / arme
+		if(/^http:\/\/leekwars.com\/static\/image\/(chip|weapon)\/(.+)\.png$/i.test(self.src)){
+			return {type: RegExp.$1, id: RegExp.$2};
+		}
+		
 		// Pages à prendre en charge dans les regex par la suite : |team|tournament|forum
 	}
 }
@@ -336,8 +472,15 @@ function display_tooltip(target) {	// Créé le tooltip s'il n'a pas encore ét�
 		tooltip.innerHTML = '<img src="http://static.leekwars.com/image/loader.gif" alt="" style="display:block;margin:auto;">';
 		hover_tooltip.appendChild(tooltip);
 		
-		var url = 'http://leekwars.com/' + target.type + '/' + target.id;
+		var url = '' ;
 		
+		if(target.type === 'chip' || target.type === 'weapon') {
+			url = 'http://leekwars.com/market';
+		}
+		else {
+			url = 'http://leekwars.com/' + target.type + '/' + target.id;
+		}
+			
 		// Récupère le contenu de la page cible via ajax
 		$.post(url, function(data) {	// Récupère la page cible du lien
 			tooltip.innerHTML = null;	// Supprime le gif de chargement
@@ -365,7 +508,8 @@ function display_tooltip(target) {	// Créé le tooltip s'il n'a pas encore ét�
         }) ;
 			}
 		  if(target.type === 'team')		fill_team(tooltip, target, $data);		// Si le lien pointe vers une page de team, on rempli le tooltip des données team
-			
+			if(target.type === 'weapon' || target.type === 'chip') fill_market_item(tooltip, target, $data);
+				
 			$('#hover_tooltip .tooltip').remove();						// Supprime les div de class .tooltip, qui sont inutiles et provoquent des erreurs d'affichage
 			position_tooltip(tooltip, document_height, posX, posY);		// Repositionne le tooltip vu ses nouvelles dimensions
 		});
@@ -710,7 +854,16 @@ function fill_team(tooltip, target, $data) {
 	
 }
 
-
+// Crée le contenu du tooltip chip/weapon
+function fill_market_item(tooltip, target, $data) {
+	var item_id = 'item-1' ;
+	$data.find('td#items div').each(function(){if($(this).attr('name') === target.type + '_' + target.id) {item_id = $(this).attr('id') ; }}) ;
+		
+	var container = document.createElement('div') ;
+	container.className = 'hover_item_preview' ;
+	container.innerHTML = $data.find('#'+ item_id +' div.item-preview').html() ;
+	tooltip.appendChild(container);
+}
 
 
 // Insertion et gestion des paramètres d'affichage du tooltip
