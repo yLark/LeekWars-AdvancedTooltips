@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name       		LeekWars AdvancedTooltips
-// @version			0.3.8
+// @version			0.3.9
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat ou d'une image de puce ou d'arme
-// @author			yLark
+// @author			yLark, asmodai27
 // @projectPage		https://github.com/yLark/LeekWars-AdvancedTooltips
 // @downloadURL		https://github.com/yLark/LeekWars-AdvancedTooltips/raw/master/AdvancedTooltips.user.js
 // @updateURL		https://github.com/yLark/LeekWars-AdvancedTooltips/raw/master/AdvancedTooltips.user.js
@@ -447,8 +447,8 @@ function match_test(self) { // Contrôle que l'élément survolé est bien susce
 			return {type: link_type, id: RegExp.$2};
 		}
 		
-		// Cas d'une image de chip / arme
-		if(/^http:\/\/leekwars.com\/static\/image\/(chip|weapon)\/(.+)\.png$/i.test(self.src)){
+		// Cas d'une image de chip / arme (n'affiche rien si on est dans le market ou l'inventaire)
+		if(/^http:\/\/leekwars.com\/static\/image\/(chip|weapon)\/(.+)\.png$/i.test(self.src) && !(/^http:\/\/leekwars.com\/(market|inventory)(.*)/i.test(document.URL))){
 			return {type: RegExp.$1, id: RegExp.$2};
 		}
 		
