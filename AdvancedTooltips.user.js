@@ -1,6 +1,6 @@
 ﻿// ==UserScript==
 // @name       		LeekWars AdvancedTooltips V2
-// @version			0.0.3
+// @version			0.0.2
 // @author			yLark, asmodai27, artorias
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @match      		http://beta.leekwars.com/*
@@ -544,7 +544,7 @@ function display_tooltip(target) {
 			// Récupère la page cible du lien
 
 			// Supprime le gif de chargement
-			tooltip.innerHTML = null;
+			tooltip.innerHTML = "";
 
 			// Si le lien pointe vers une page de rapport de combat, on rempli le tooltip des données du rapport
 			if (target.type === 'fight') fill_report(tooltip, target, data);
@@ -896,7 +896,7 @@ function buildSoloReport(tableData, bonus, ai_times) {
 		}
 
 		table += '<tr>'
-			+ '<td class="name">' + (l.dead ? '<img src="http://static.beta.leekwars.com//image/cross.png"/>' : '')
+			+ '<td class="name">' + (l.dead ? '<span class="dead"> </span>' : '')
 				+ '<a href="http://beta.leekwars.com/leek/' + l.id + '">' + l.name + '</a></td>'
 			+ '<td class="level">' + l.level + '</td>'
 			+ '<td class="xp">' + l.xp + (l.td > 0 ? (' <span class="talent-bonus" >+' + l.tb  + '%</span>') : '')
@@ -909,14 +909,15 @@ function buildSoloReport(tableData, bonus, ai_times) {
 			+ '</tr>';
 	}
 
-	table += '</table>';
+	table += '</tbody></table>';
 
 	return table;
 }
 
 function buildFarmerReport(farmerData, tableData, bonus, ai_times) {
 	var table = '<table class="report"> <tbody><tr><th>Éleveur</th><th>Talent</th></tr>';
-	table += '<tr><td><a href="http://beta.leekwars.com/farmer/' + farmerData.id + '">' + farmerData.name + '</a></td>'
+	table += '<tr><td><a href="http://beta.leekwars.com/farmer/' + farmerData.id + '">' + farmerData.name
+		+ '</a></td>'
 		+ '<td>' + nullSafe(farmerData.talent, 0) + ' ' + (farmerData.talent_gain > 0 ? '+' : '')
 		+ nullSafe(farmerData.talent_gain, '') + '</td></tr></tbody></table>';
 
@@ -933,7 +934,7 @@ function buildFarmerReport(farmerData, tableData, bonus, ai_times) {
 		}
 
 		table += '<tr>'
-			+ '<td class="name">' + (l.dead ? '<img src="http://static.beta.leekwars.com//image/cross.png"/>' : '')
+			+ '<td class="name">' + (l.dead ? '<span class="dead"> </span>' : '')
 				+ '<a href="http://beta.leekwars.com/leek/' + l.id + '">' + l.name + '</a></td>'
 			+ '<td class="level">' + l.level + '</td>'
 			+ '<td class="xp">' + l.xp + (l.td > 0 ? (' <span class="talent-bonus">+' + l.tb  + '%</span>') : '')
@@ -955,8 +956,10 @@ function nullSafe(data, defaultValue) {
 }
 
 function buildTeamReport(teamData, tableData, bonus, ai_times) {
-	var table = '<table class="report"> <tbody><tr><th>Équipe</th><th>Talent</th></tr>';
+	var table = '<table class="report"> <tbody><tr><th>Équipe</th><th>Niveau</th><th>XP</th><th>Talent</th></tr>';
 	table += '<tr><td><a href="http://beta.leekwars.com/team/' + teamData.id + '">' + teamData.name + '</a></td>'
+		+ '<td>' + teamData.level + '</td>'
+		+ '<td>' + teamData.xp + '</td>'
 		+ '<td>' + nullSafe(teamData.talent, 0) + ' ' + (teamData.talent_gain > 0 ? '+' : '')
 		+ nullSafe(teamData.talent_gain, '') + '</td></tr></tbody></table>';
 
@@ -973,7 +976,7 @@ function buildTeamReport(teamData, tableData, bonus, ai_times) {
 		}
 
 		table += '<tr>'
-			+ '<td class="name">' + (l.dead ? '<img src="http://static.beta.leekwars.com//image/cross.png"/>' : '')
+			+ '<td class="name">' + (l.dead ? '<span class="dead"> </span>' : '')
 				+ '<a href="http://beta.leekwars.com/leek/' + l.id + '">' + l.name + '</a></td>'
 			+ '<td class="level">' + l.level + '</td>'
 			+ '<td class="xp">' + l.xp + (l.td > 0 ? (' <span class="talent-bonus">+' + l.tb  + '%</span>') : '')
@@ -1007,6 +1010,8 @@ function fill_report(tooltip, target, $data) {
 		+ ' tours</div>'
 
 	tooltip.appendChild(duration);
+
+	var result = "";
 
 	var winners;
 	var losers;
@@ -1050,24 +1055,25 @@ function fill_report(tooltip, target, $data) {
 	}
 
 	// S'il y a trop de poireaux, on affiche les tableaux de chaque équipe côte à côte
-	if (nbleeks > 10) {
-		// TODO
-		tooltip.innerHTML += '<div class="teams_block">';
-		tooltip.innerHTML += '<div class="team_table" style="white-space: nowrap; display: inline-block; margin-left: 2px; margin-right: 2px;">';
-		tooltip.innerHTML += '<div style="text-align:center;font-weight:bold;" id="hover_win">Gagnants</div>';
-		tooltip.innerHTML += winners;
-		tooltip.innerHTML += '</div>';
-		tooltip.innerHTML += '<div class="team_table" style="white-space: nowrap; display: inline-block; margin-left: 2px; margin-right: 2px;">';
-		tooltip.innerHTML += '<div style="text-align:center;font-weight:bold;" id="hover_lose">Perdants</div>';
-		tooltip.innerHTML += losers;
-		tooltip.innerHTML += '</div>'
-		tooltip.innerHTML += '</div>';
+	if (nbleeks > 6) {
+		result += '<div class="teams_block">';
+		result += '<div class="team_table" style="white-space: nowrap; display: inline-block; margin-left: 2px; margin-right: 2px;">';
+		result += '<div style="text-align:center;font-weight:bold;" id="hover_win">Gagnants</div>';
+		result += winners;
+		result += '</div>';
+		result += '<div class="team_table" style="white-space: nowrap; display: inline-block; margin-left: 2px; margin-right: 2px;">';
+		result += '<div style="text-align:center;font-weight:bold;" id="hover_lose">Perdants</div>';
+		result += losers;
+		result += '</div>'
+		result += '</div>';
 	} else {
-		tooltip.innerHTML += '<div style="text-align:center;font-weight:bold;" id="hover_win">Gagnants</div>';
-		tooltip.innerHTML += winners;
-		tooltip.innerHTML += '<div style="text-align:center;font-weight:bold;" id="hover_lose">Perdants</div>';
-		tooltip.innerHTML += losers;
+		result += '<div style="text-align:center;font-weight:bold;" id="hover_win">Gagnants</div>';
+		result += winners;
+		result += '<div style="text-align:center;font-weight:bold;" id="hover_lose">Perdants</div>';
+		result += losers;
 	}
+
+	tooltip.innerHTML += result;
 
 	// Nettoie les id pour ne pas avoir de conflit
 	tooltip.innerHTML += $data.find('#report-general').html().replace(/id=/g, 'old_id=');
