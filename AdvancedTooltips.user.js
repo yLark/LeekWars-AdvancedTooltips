@@ -109,6 +109,7 @@ function match_test(self) {
 	// Exclusion des liens contenus dans le menu et dans les tabs. Évite de spammer des tooltips
 	if (!/menu|menu-wrapper|menu-button|tabs/i.test(self.parentNode.id) &&
 	 		!/menu|menu-wrapper|menu-button|tabs/i.test(self.parentNode.parentNode.id) &&
+			!/menu|menu-wrapper|menu-button|tabs/i.test(self.parentNode.parentNode.parentNode.id) &&
 			!/reporttip/i.test(self.id)) {
 
 		// Cas d'un div de class leek|farmer
