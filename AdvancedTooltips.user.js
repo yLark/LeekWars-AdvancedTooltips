@@ -1,6 +1,6 @@
 ﻿// ==UserScript==
 // @name       		LeekWars AdvancedTooltips V2
-// @version			0.0.2
+// @version			0.0.3
 // @author			yLark, asmodai27, artorias
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @match      		http://beta.leekwars.com/*
@@ -15,6 +15,17 @@ function main () {
 
 // Ajout de la feuille de style des tooltips
 addGlobalStyle('\
+.state.online {\
+    background-image: url("http://static.leekwars.com/image/connected.png");\
+}\
+.state {\
+    background-image: url("http://static.leekwars.com/image/disconnected.png");\
+    display: inline-block;\
+    height: 10px;\
+    margin-left: 8px;\
+    vertical-align: middle;\
+    width: 10px;\
+}\
 .hover_tooltip {\
 	padding: 4px;\
 	box-shadow: 2px 3px 5px rgba(0, 0, 0, 0.3);\
@@ -38,7 +49,7 @@ addGlobalStyle('\
 	-webkit-column-count: 4;\
 }\
 .hover_stats, .AT_basic {\
-	width: 260px;\
+	width: 300;\
 	white-space: nowrap;\
 	margin: auto;\
 	margin-top: 3px;\
@@ -812,6 +823,9 @@ function fill_leek(tooltip, target, $data) {
 	if ($data.leek.talent != '') { // Si le poireau a un talent
 		talent.innerHTML += '<img src="http://static.leekwars.com/image/talent.png"/>';
 		talent.innerHTML += $data.leek.talent;
+		if ($data.leek.talent_more != '') {
+			talent.innerHTML += ' (' + ($data.leek.talent_more > 0 ? '+' : '') + $data.leek.talent_more +')';
+		}
 		talent.title = 'Talent';
 	} else {
 		talent.innerHTML += '-';
@@ -1093,9 +1107,12 @@ function fill_farmer(tooltip, target, $data) {
 	var farmer_name = $data.farmer.name;
 
 	 // Est-ce que l'éleveur est connecté ?
-	var connexion_state = 'state ' + $data.farmer.connected;
+	var connexion_state = 'state ' + ($data.farmer.connected ? 'online' : '');
+	var admin = ($data.farmer.admin ? 'admin' : '');
+	var moderator = ($data.farmer.moderator ? 'moderator' : '');
 
-	farmer.innerHTML = '<a title="Éleveur" href="http://beta.leekwars.com/farmer/' + $data.farmer.id + '">'
+	farmer.innerHTML = '<a title="Éleveur" href="http://beta.leekwars.com/farmer/' + $data.farmer.id
+		+ '" class="' + admin + ' ' + moderator + '">'
 		+ farmer_name + '</a><span class="' + connexion_state + '"></span>';
 	farmer.className = 'AT_tooltip_name';
 	tooltip.appendChild(farmer);
@@ -1131,6 +1148,9 @@ function fill_farmer(tooltip, target, $data) {
 		// Si le poireau a un talent
 		talent.innerHTML += '<img src="http://static.leekwars.com/image/talent.png">';
 		talent.innerHTML += $data.farmer.talent;
+		if ($data.farmer.talent_more != '') {
+			talent.innerHTML += ' (' + ($data.farmer.talent_more > 0 ? '+' : '') + $data.farmer.talent_more +')';
+		}
 		talent.title = 'Talent';
 	} else {
 		talent.innerHTML += '-';
