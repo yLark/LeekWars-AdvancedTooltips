@@ -1,6 +1,6 @@
 ﻿// ==UserScript==
 // @name       		LeekWars AdvancedTooltips V2
-// @version			0.0.2
+// @version			0.0.3
 // @author			yLark, asmodai27, artorias
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @match      		http://beta.leekwars.com/*
@@ -1177,10 +1177,6 @@ function fill_farmer(tooltip, target, $data) {
 		for(var l in leeks) {
     		if(leeks.hasOwnProperty(l)) {
 				var id = leeks[l].id;
-				var name = leeks[l].name;
-				var level = leeks[l].level;
-				var talent = leeks[l].talent;
-				if (talent == '') talent = '-';
 
 				// Prépare la ligne de chaque poireau. Permet de les garder toujours triés, même si les requêtes ajax arrivent dans le désordre
 				$('#leeks_table_' + target.id).append($('<tr id="farmer_leek_table_' + id + '"></tr>'));
@@ -1188,7 +1184,12 @@ function fill_farmer(tooltip, target, $data) {
 				// Récupère les données du poireau
 				$.get('http://beta.leekwars.com/api/leek/get/' + id, function(leekdata) {
 					var leek = leekdata.leek;
+					var name = leek.name;
 					var ratio = leek.ratio;
+					var level = leek.level;
+					var talent = leek.talent;
+					if (talent == '') talent = '-';
+
 					var life = leek.life;
 					var force = leek.strength;
 					var agility = leek.agility;
