@@ -9,8 +9,375 @@
 // @require			https://raw.githubusercontent.com/websanova/mousestop/master/mousestop.min.js
 // ==/UserScript==
 
-// Initialisation des paramètres d'affichage des tooltips
+function main () {
 
+(function () {
+
+// Ajout de la feuille de style des tooltips
+addGlobalStyle('\
+.hover_tooltip {\
+	padding: 4px;\
+	box-shadow: 2px 3px 5px rgba(0, 0, 0, 0.3);\
+	background-color: #EEE;\
+	border: 2px solid #BBB;\
+	overflow: auto;\
+	position: absolute;\
+	font-size: 15px;\
+	color: black;\
+	text-align: center;\
+	min-width: 300px;\
+}\
+.AT_basic {\
+	column-count: 3;\
+	-moz-column-count: 3;\
+	-webkit-column-count: 3;\
+}\
+.hover_stats {\
+	column-count: 4;\
+	-moz-column-count: 4;\
+	-webkit-column-count: 4;\
+}\
+.hover_stats, .AT_basic {\
+	width: 260px;\
+	white-space: nowrap;\
+	margin: auto;\
+	margin-top: 3px;\
+	margin-bottom: 3px;\
+}\
+.hover_stats img, .AT_basic img {\
+	width: 20px;\
+	vertical-align: middle;\
+	margin-right: 4px;\
+	margin-bottom: 4px;\
+}\
+.leek-weapons {\
+	display: inline-block;\
+	vertical-align: top;\
+}\
+.leek-weapons div {\
+	margin: 4px;\
+	display: block;\
+}\
+.leek-chips {\
+	display: inline-block;\
+	vertical-align: top;\
+	width: 190px;\
+}\
+.hover_tooltip .chip {\
+	display: inline-block;\
+	vertical-align: bottom;\
+	margin: 4px;\
+}\
+.hover_tooltip .chip img {\
+	width: 55px;\
+	vertical-align: bottom;\
+}\
+.AT_tooltip_name {\
+	float: left;\
+	font-weight: bold;\
+	font-size: 17px;\
+}\
+.AT_tooltip_name a {\
+	cursor: pointer;\
+}\
+.AT_tooltip_subname {\
+	text-align: right;\
+	margin-bottom: 6px;\
+}\
+.AT_tooltip_subname a {\
+	color:#AAA;\
+}\
+.hover_talent {\
+	color:#555;\
+}\
+.life {\
+	color: red;\
+}\
+.strength {\
+	color: #833100;\
+}\
+.agility {\
+	color: #0080F7;\
+}\
+.tp {\
+	color: #FF7F01;\
+}\
+.mp {\
+	color: #00A900;\
+}\
+.frequency {\
+	color: #b800b6;\
+}\
+.cores {\
+	color: #0000a2;\
+}\
+.widsom {\
+	color: black;\
+}\
+/* Fight report tooltip css*/\
+.hover_tooltip .report .name {\
+	text-align: left;\
+}\
+.hover_tooltip .duration {\
+	text-align: right;\
+	color: #777;\
+}\
+.hover_tooltip .report .hover_name {\
+	text-align: left;\
+}\
+.report .alive {\
+	margin-left: 23px;\
+}\
+.report .dead {\
+	background-image: url("http://static.leekwars.com/image/cross.png");\
+	width: 15px;\
+	height: 20px;\
+	display: inline-block;\
+	margin-right: 8px;\
+	vertical-align: bottom;\
+}\
+.report .talent-bonus {\
+    background-color: #888;\
+    border-radius: 3px;\
+    color: white;\
+    font-weight: bold;\
+    margin-left: 10px;\
+    padding: 0 4px;\
+}\
+.hover_tooltip .hover_money {\
+	text-align: right !important;\
+}\
+.hover_tooltip .report {\
+	margin: 0px auto 20px;\
+	background: none repeat scroll 0% 0% #F8F8F8;\
+	border-collapse: collapse;\
+	width:100%;\
+}\
+.hover_tooltip .report td {\
+	border: 2px solid #ddd;\
+	text-align: center;\
+	padding: 2px 3px;\
+}\
+.report th {\
+	border: 2px solid #ddd;\
+	padding: 4px;\
+	background: white;\
+	font-weight: normal;\
+	color: #777;\
+}\
+.report .total {\
+	color: #888;\
+	font-style: italic;\
+}\
+.hover_tooltip .report .hover_fight_talent img {\
+	width: 18px;\
+	vertical-align: top;\
+}\
+.hover_tooltip .hab {\
+	width: 18px;\
+	height: 18px;\
+	vertical-align: bottom;\
+	display: inline-block;\
+	background-image: url("http://static.leekwars.com/image/hab.png");\
+}\
+.hover_tooltip .report .bonus {\
+	background-color: #0075DF;\
+	color: white;\
+	font-weight: bold;\
+	padding: 0 4px;\
+	margin-left: 10px;\
+	border-radius: 3px;\
+}\
+.tiny_fight_link {\
+	float: left;\
+	opacity: 0.2;\
+	margin-left: 2px;\
+	margin-right: 2px;\
+}\
+.tiny_fight_link img {\
+	width: 16px;\
+}\
+.team_table {\
+	white-space: nowrap;\
+	display: inline-block;\
+	margin-left: 2px;\
+	margin-right: 2px;\
+}\
+.hover_leeks_table th {\
+	border: 2px solid #ddd;\
+	padding: 4px;\
+	background: white;\
+	font-weight: normal;\
+	color: #777;\
+}\
+.hover_leeks_table td {\
+	border: 2px solid #ddd;\
+	text-align: center;\
+	background: white;\
+	padding: 2px 3px;\
+}\
+.hover_leeks_table img {\
+	width: 20px;\
+	height: 20px;\
+}\
+.hover_leeks_table tr.total {\
+	color: #888;\
+	font-style: italic;\
+}\
+.AT_avatar {\
+	margin-right: 6px;\
+	float: left;\
+}\
+.AT_avatar img {\
+	width: 50px;\
+}\
+.AT_send_message img {\
+	width: 20px;\
+}\
+.hover_item_preview {\
+	margin: auto;\
+	border: 2px solid #ddd;\
+	text-align: center;\
+}\
+.hover_item_preview .header {\
+	background-color: #ddd;\
+	padding: 2px 5px;\
+	height: 25px;\
+	\
+} \
+.hover_item_preview .name { \
+	float: left;\
+	font-size: 19px;\
+	color: black;\
+	margin: 0;\
+}\
+.hover_item_preview .level {\
+	float: right;\
+	font-size: 16px; \
+	color: #777;\
+}\
+.hover_item_preview .image {\
+	height: 80px;\
+	position: relative;\
+}\
+.hover_item_preview .image img {\
+	position: absolute;\
+	top:0;\
+	bottom:0;\
+	left: 0; right: 0; \
+	margin: auto; \
+}\
+.hover_item_preview .desc {\
+	text-align: justify;\
+	font-size: 14px;\
+	color: #777;\
+	padding: 5px;\
+}\
+.hover_item_preview .stats div { \
+	padding: 4px;\
+}\
+.hover_item_preview .stats div img {\
+	vertical-align: bottom;\
+}\
+.hover_item_preview .stats div:nth-child(2n+1) {\
+	background-color: white;\
+}\
+.hover_item_preview .ennemies, \
+.hover_item_preview .allies, \
+.hover_item_preview .player, \
+.hover_item_preview .not-player,\
+.hover_item_preview .summons\
+{\
+	width: 14px;\
+	height: 14px;\
+	display: inline-block;\
+	vertical-align: middle;\
+	margin-left: 10px;\
+}\
+.hover_item_preview .ennemies {\
+	background-color: red;\
+}\
+.hover_item_preview .allies {\
+	background-color: blue;\
+}\
+.hover_item_preview .player {\
+	background-color: black;\
+}\
+.hover_item_preview .not-player {\
+	background-color: white;\
+	border: 2px solid #555;\
+	width: 10px;\
+	height: 10px;\
+}\
+.hover_item_preview .summons {\
+	background-color: red;\
+}\
+.hover_item_preview .constant {\
+	text-align: left;\
+	color: #555;\
+	font-size: 13px;\
+	padding: 4px;\
+}\
+.hover_item_preview .area {\
+	border-collapse: separate;\
+	border-spacing: 1px;\
+	margin: 3px auto;\
+}\
+.hover_item_preview .area td {\
+	width: 6px;\
+	height: 6px;\
+	background: #eee;\
+}\
+.hover_item_preview .area td.full {\
+	background: #999;\
+}\
+.hover_item_preview .stats .leek-preview {\
+	padding: 10px;\
+}\
+.hover_item_preview .summon h3 {\
+	margin: 6px;\
+	text-align: left;\
+	font-size: 15px;\
+}\
+.hover_item_preview .summon table {\
+	width: auto;\
+	margin: 0 auto;\
+}\
+.hover_item_preview .summon .summon-image {\
+	display: inline-block;\
+	margin-right: 10px;\
+	margin-left: 10px;\
+}\
+.hover_item_preview .summon .characs {\
+	text-align: left;\
+}\
+.hover_item_preview .summon .charac {\
+	text-align: left;\
+	padding: 2px 4px;\
+}\
+.hover_item_preview .summon .charac span {\
+	display: inline-block;\
+	margin-top: 3px;\
+	vertical-align: top;\
+	margin-left: 2px;\
+}\
+.hover_item_preview .summon .chips .chip {\
+	width: 50px;\
+	margin: 3px;\
+}\
+');
+
+function addGlobalStyle(css) {
+    var head, style;
+    head = document.getElementsByTagName('head')[0];
+    if (!head) { return; }
+    style = document.createElement('style');
+    style.type = 'text/css';
+    style.innerHTML = css;
+    head.appendChild(style);
+}
+
+// Initialisation des paramètres d'affichage des tooltips
 // Méthode d'affichage des tooltips
 var display_method = 'mousestop'; //GM_getValue('advanced_tooltips_display_method', 'mousestop');
 
@@ -164,7 +531,13 @@ function display_tooltip(target) {
 		tooltip.innerHTML = '<img src="http://static.leekwars.com/image/loader.gif" alt="" style="display:block;margin:auto;">';
 		hover_tooltip.append($(tooltip));
 
-		var url = 'http://beta.leekwars.com/api/' + target.type + '/get/' + target.id;
+		var url;
+		if(target.type === 'chip' || target.type === 'weapon') {
+			url = 'http://beta.leekwars.com/api/view/get/market';
+		}
+		else {
+			url = 'http://beta.leekwars.com/api/' + target.type + '/get/' + target.id;
+		}
 
 		// Récupère le contenu de la page cible via ajax
 		$.get(url, function(data) {
@@ -206,6 +579,8 @@ function display_tooltip(target) {
 
 			// Si le lien pointe vers une page de team, on rempli le tooltip des données team
 			if (target.type === 'team') fill_team(tooltip, target, $data);
+
+			if(target.type === 'weapon' || target.type === 'chip') fill_market_item(tooltip, target, $data);
 
 			// Supprime les div de class .tooltip, qui sont inutiles et provoquent des erreurs d'affichage
 			$('#hover_tooltip .tooltip').remove();
@@ -409,7 +784,6 @@ function fill_leek(tooltip, target, $data) {
 
 	// Ajout du nom du poireau
 	var leek = document.createElement('div');
-	leek.setAttribute('style', 'float: left; font-weight: bold; font-size: 17px;');
 	var leek_name = $data.leek.name;
 	leek.innerHTML = '<a title="Défier ' + leek_name + '" href="/garden/challenge=' + target.id + '">' + leek_name
 		+ '</a>';
@@ -418,14 +792,12 @@ function fill_leek(tooltip, target, $data) {
 
 	// Ajout de l'éleveur
 	var farmer = document.createElement('div');
-	farmer.setAttribute('style', 'text-align: right; margin-bottom: 6px;');
 	farmer.innerHTML = '<a title="Éleveur" href="' + $data.leek.farmer.id + '">' + $data.leek.farmer.name + '</a>';
 	farmer.className = 'AT_tooltip_subname';
 	tooltip.appendChild(farmer);
 
 	// Ajout du conteneur de level + talent + ratio
 	var AT_basic = document.createElement('div');
-	AT_basic.setAttribute('style', 'column-count: 3; -moz-column-count: 3; -webkit-column-count: 3;');
 	AT_basic.className = 'AT_basic';
 	tooltip.appendChild(AT_basic);
 
@@ -437,7 +809,6 @@ function fill_leek(tooltip, target, $data) {
 
 	// Ajout du talent
 	var talent = document.createElement('div');
-	talent.setAttribute('style', 'color:#555;');
 	if ($data.leek.talent != '') { // Si le poireau a un talent
 		talent.innerHTML += '<img src="http://static.leekwars.com/image/talent.png"/>';
 		talent.innerHTML += $data.leek.talent;
@@ -457,28 +828,28 @@ function fill_leek(tooltip, target, $data) {
 	// Ajout des statistiques du poireau
 	var stats = document.createElement('div');
 	stats.className = 'hover_stats';
-	stats.innerHTML += '<div style="color:red;" title="Points de vie">'
+	stats.innerHTML += '<div title="Points de vie" class="life">'
 		+ '<img src="http://static.beta.leekwars.com/image/carac/life.png"/>'
 		+ $data.leek.life + '</div>';
-	stats.innerHTML += '<div style="color:#b800b6;"  title="Fréquence">'
+	stats.innerHTML += '<div title="Fréquence" class="frequency">'
 		+ '<img src="http://static.beta.leekwars.com/image/carac/frequency.png"/>'
 		+ $data.leek.frequency + '</div>';
-	stats.innerHTML += '<div style="color:#833100;"  title="Force">'
+	stats.innerHTML += '<div title="Force" class="strength">'
 		+ '<img src="http://static.beta.leekwars.com/image/carac/strength.png"/>'
 		+ $data.leek.strength + '</div>';
-	stats.innerHTML += '<div style="color:#FF7F01;"  title="Points de tour">'
+	stats.innerHTML += '<div title="Points de tour" class="tp">'
 		+ '<img src="http://static.beta.leekwars.com/image/carac/tp.png"/>'
 		+ $data.leek.tp + '</div>';
-	stats.innerHTML += '<div style="color:#0080F7;"  title="Agilité">'
+	stats.innerHTML += '<div title="Agilité" class="agility">'
 		+ '<img src="http://static.beta.leekwars.com/image/carac/agility.png"/>'
 		+ $data.leek.agility + '</div>';
-	stats.innerHTML += '<div style="color:#00A900;"  title="Points de mouvement">'
+	stats.innerHTML += '<div title="Points de mouvement" class="mp">'
 		+ '<img src="http://static.beta.leekwars.com/image/carac/mp.png"/>'
 		+ $data.leek.mp + '</div>';
-	stats.innerHTML += '<div style="color:black;"  title="Sagesse">'
+	stats.innerHTML += '<div title="Sagesse" class="wisdom">'
 		+ '<img src="http://static.beta.leekwars.com/image/carac/wisdom.png"/>'
 		+ $data.leek.wisdom + '</div>';
-	stats.innerHTML += '<div style="color:#0000a2;"  title="Cœurs">'
+	stats.innerHTML += '<div  title="Cœurs" class="cores">'
 		+ '<img src="http://static.beta.leekwars.com/image/carac/cores.png"/>'
 		+ $data.leek.cores + '</div>';
 	stats.innerHTML = stats.innerHTML.replace(/id=/g, 'class=');
@@ -486,8 +857,6 @@ function fill_leek(tooltip, target, $data) {
 
 	// Ajout des armes
 	var weapons = document.createElement('div');
-
-	weapons.setAttribute('style', 'display: inline-block;vertical-align: top;');
 
 	for (var i = 0; i < $data.leek.weapons.length; i++) {
 		var w = $data.leek.weapons[i].template;
@@ -502,7 +871,6 @@ function fill_leek(tooltip, target, $data) {
 	// Ajout des puces
 	var chips = document.createElement('div');
 
-	chips.setAttribute('style', 'display: inline-block;vertical-align: bottom;width: 190px;');
 
 	for (var i = 0; i < $data.leek.chips.length; i++) {
 		var c = $data.leek.chips[i].template;
@@ -531,12 +899,12 @@ function buildSoloReport(tableData, bonus, ai_times) {
 			+ '<td class="name">' + (l.dead ? '<img src="http://static.beta.leekwars.com//image/cross.png"/>' : '')
 				+ '<a href="http://beta.leekwars.com/leek/' + l.id + '">' + l.name + '</a></td>'
 			+ '<td class="level">' + l.level + '</td>'
-			+ '<td class="xp">' + l.xp + (l.td > 0 ? (' <span class="talent-bonus" style="background-color: #888; border-radius: 3px; color: white; font-weight: bold; margin-left: 10px; padding: 0 4px;" id="talent-diff-7309">+' + l.tb  + '%</span>') : '')
-				+ (bonus > 1 ? '<span class="bonus" style="background-color: #0075df; border-radius: 3px; color: white; font-weight: bold; margin-left: 10px; padding: 0 4px;">x' + bonus + '</span>' : '')
+			+ '<td class="xp">' + l.xp + (l.td > 0 ? (' <span class="talent-bonus" >+' + l.tb  + '%</span>') : '')
+				+ (bonus > 1 ? '<span class="bonus" >x' + bonus + '</span>' : '')
 				+ '</td>'
-			+ '<td><img src="http://static.beta.leekwars.com/image/talent.png" style="width: 18px"/>' + l.talent + ' ' + (l.talent_gain > 0 ? '+' : '') + l.talent_gain + '</td>'
+			+ '<td><img src="http://static.beta.leekwars.com/image/talent.png" style="width: 18px"/>' + nullSafe(l.talent, 0) + ' ' + (l.talent_gain > 0 ? '+' : '') + nullSafe(l.talent_gain, '') + '</td>'
 			+ '<td class="money" style="vertical-align:center;"><span>' + l.money
-				+ ' <span style="background-image: url(\'http://static.beta.leekwars.com/image/hab.png\'); display: inline-block; height: 18px; vertical-align: bottom; width: 18px;"> </span></span></td>'
+				+ ' <span class="hab"> </span></span></td>'
 			+ '<td>' + cpu + ' ms</td>'
 			+ '</tr>';
 	}
@@ -549,8 +917,8 @@ function buildSoloReport(tableData, bonus, ai_times) {
 function buildFarmerReport(farmerData, tableData, bonus, ai_times) {
 	var table = '<table class="report"> <tbody><tr><th>Éleveur</th><th>Talent</th></tr>';
 	table += '<tr><td><a href="http://beta.leekwars.com/farmer/' + farmerData.id + '">' + farmerData.name + '</a></td>'
-		+ '<td>' + nullSafe(farmerData.talent) + ' ' + (farmerData.talent_gain > 0 ? '+' : '')
-		+ nullSafe(farmerData.talent_gain) + '</td></tr></tbody></table>';
+		+ '<td>' + nullSafe(farmerData.talent, 0) + ' ' + (farmerData.talent_gain > 0 ? '+' : '')
+		+ nullSafe(farmerData.talent_gain, '') + '</td></tr></tbody></table>';
 
 	table += '<table class="report"> <tbody><tr><th>Poireau</th><th>Niveau</th><th>XP</th><th class="gain">Habs</th><th>CPU time</th></tr>';
 
@@ -568,11 +936,11 @@ function buildFarmerReport(farmerData, tableData, bonus, ai_times) {
 			+ '<td class="name">' + (l.dead ? '<img src="http://static.beta.leekwars.com//image/cross.png"/>' : '')
 				+ '<a href="http://beta.leekwars.com/leek/' + l.id + '">' + l.name + '</a></td>'
 			+ '<td class="level">' + l.level + '</td>'
-			+ '<td class="xp">' + l.xp + (l.td > 0 ? (' <span class="talent-bonus" style="background-color: #888; border-radius: 3px; color: white; font-weight: bold; margin-left: 10px; padding: 0 4px;" id="talent-diff-7309">+' + l.tb  + '%</span>') : '')
-				+ (bonus > 1 ? '<span class="bonus" style="background-color: #0075df; border-radius: 3px; color: white; font-weight: bold; margin-left: 10px; padding: 0 4px;">x' + bonus + '</span>' : '')
+			+ '<td class="xp">' + l.xp + (l.td > 0 ? (' <span class="talent-bonus">+' + l.tb  + '%</span>') : '')
+				+ (bonus > 1 ? '<span class="bonus">x' + bonus + '</span>' : '')
 				+ '</td>'
 			+ '<td class="money" style="vertical-align:center;"><span>' + l.money
-				+ ' <span style="background-image: url(\'http://static.beta.leekwars.com/image/hab.png\'); display: inline-block; height: 18px; vertical-align: bottom; width: 18px;"> </span></span></td>'
+				+ ' <span class="hab"> </span></span></td>'
 			+ '<td>' + cpu + ' ms</td>'
 			+ '</tr>';
 	}
@@ -582,15 +950,15 @@ function buildFarmerReport(farmerData, tableData, bonus, ai_times) {
 	return table;
 }
 
-function nullSafe(data) {
-	return data != null ? data : '';
+function nullSafe(data, defaultValue) {
+	return data != null ? data : defaultValue;
 }
 
 function buildTeamReport(teamData, tableData, bonus, ai_times) {
 	var table = '<table class="report"> <tbody><tr><th>Équipe</th><th>Talent</th></tr>';
 	table += '<tr><td><a href="http://beta.leekwars.com/team/' + teamData.id + '">' + teamData.name + '</a></td>'
-		+ '<td>' + nullSafe(teamData.talent) + ' ' + (teamData.talent_gain > 0 ? '+' : '')
-		+ nullSafe(teamData.talent_gain) + '</td></tr></tbody></table>';
+		+ '<td>' + nullSafe(teamData.talent, 0) + ' ' + (teamData.talent_gain > 0 ? '+' : '')
+		+ nullSafe(teamData.talent_gain, '') + '</td></tr></tbody></table>';
 
 	table += '<table class="report"> <tbody><tr><th>Poireau</th><th>Niveau</th><th>XP</th><th class="gain">Habs</th><th>CPU time</th></tr>';
 
@@ -608,11 +976,11 @@ function buildTeamReport(teamData, tableData, bonus, ai_times) {
 			+ '<td class="name">' + (l.dead ? '<img src="http://static.beta.leekwars.com//image/cross.png"/>' : '')
 				+ '<a href="http://beta.leekwars.com/leek/' + l.id + '">' + l.name + '</a></td>'
 			+ '<td class="level">' + l.level + '</td>'
-			+ '<td class="xp">' + l.xp + (l.td > 0 ? (' <span class="talent-bonus" style="background-color: #888; border-radius: 3px; color: white; font-weight: bold; margin-left: 10px; padding: 0 4px;" id="talent-diff-7309">+' + l.tb  + '%</span>') : '')
-				+ (bonus > 1 ? '<span class="bonus" style="background-color: #0075df; border-radius: 3px; color: white; font-weight: bold; margin-left: 10px; padding: 0 4px;">x' + bonus + '</span>' : '')
+			+ '<td class="xp">' + l.xp + (l.td > 0 ? (' <span class="talent-bonus">+' + l.tb  + '%</span>') : '')
+				+ (bonus > 1 ? '<span class="bonus">x' + bonus + '</span>' : '')
 				+ '</td>'
 			+ '<td class="money" style="vertical-align:center;"><span>' + l.money
-				+ ' <span style="background-image: url(\'http://static.beta.leekwars.com/image/hab.png\'); display: inline-block; height: 18px; vertical-align: bottom; width: 18px;"> </span></span></td>'
+				+ ' <span class="hab"> </span></span></td>'
 			+ '<td>' + cpu + ' ms</td>'
 			+ '</tr>';
 	}
@@ -877,6 +1245,17 @@ function fill_team(tooltip, target, $data) {
 
 }
 
+// Crée le contenu du tooltip chip/weapon
+function fill_market_item(tooltip, target, $data) {
+	var item_id = 'item-1' ;
+	$data.find('td#items div').each(function(){if($(this).attr('name') === target.type + '_' + target.id) {item_id = $(this).attr('id') ; }}) ;
+
+	var container = document.createElement('div') ;
+	container.className = 'hover_item_preview' ;
+	container.innerHTML = $data.find('#'+ item_id +' div.item-preview').html() ;
+	tooltip.appendChild(container);
+}
+
 // Insertion et gestion des paramètres d'affichage du tooltip
 if (document.URL == 'http://beta.leekwars.com/settings') {
 
@@ -915,3 +1294,12 @@ if (document.URL == 'http://beta.leekwars.com/settings') {
 		GM_setValue('advanced_tooltips_display_farmer_leek_table', display_farmer_leek_table);
 	});
 }
+
+})();
+
+
+};
+
+var script = document.createElement('script');
+script.appendChild(document.createTextNode('('+ main +')();'));
+(document.body || document.head || document.documentElement).appendChild(script);
