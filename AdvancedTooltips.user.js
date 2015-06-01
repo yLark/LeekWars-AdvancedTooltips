@@ -1,6 +1,6 @@
 ﻿// ==UserScript==
 // @name       		LeekWars AdvancedTooltips V2
-// @version			0.0.3
+// @version			0.0.4
 // @author			yLark, asmodai27, artorias
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @match      		http://beta.leekwars.com/*
@@ -141,10 +141,21 @@ addGlobalStyle('\
 }\
 .report .dead {\
 	background-image: url("http://static.leekwars.com/image/cross.png");\
+    background-repeat: no-repeat;\
 	width: 15px;\
 	height: 20px;\
 	display: inline-block;\
 	margin-right: 8px;\
+	vertical-align: bottom;\
+}\
+.report .bulb {\
+	background-image: url("http://leekwars.com/static/image/bulb/puny_bulb_front.png");\
+    background-repeat: no-repeat;\
+    background-size: contain;\
+	width: 10px;\
+	height: 20px;\
+	display: inline-block;\
+	margin-right: 3px;\
 	vertical-align: bottom;\
 }\
 .report .talent-bonus {\
@@ -490,7 +501,16 @@ function match_test(self) {
 			!/menu|menu-wrapper|menu-button|tabs/i.test(self.parentNode.parentNode.parentNode.id) &&
 			!/reporttip/i.test(self.id)) {
 
-		// Cas d'un div de class leek|farmer
+		// Cas d'un div de class leek dans le potager
+		if (!isNaN(self.getAttribute('leek')) && self.getAttribute('leek') != ''
+                && /(leek)/i.test(self.className)) {
+			return {
+				type: RegExp.$1,
+				id: self.getAttribute('leek')
+			};
+		}
+
+        // Cas d'un div de class leek|farmer
 		if (!isNaN(self.id) && self.id != '' && /(leek|farmer)/i.test(self.className)) {
 			return {
 				type: RegExp.$1,
@@ -499,20 +519,21 @@ function match_test(self) {
 		}
 
 		// Cas d'un lien href vers une page leek|fight|report|farmer
-		if (/^http:\/\/beta.leekwars.com\/(leek|fight|report|farmer)\/([0-9]+)$/i.test(self.href)) {
-			var link_type = ((RegExp.$1 == 'fight') ? 'fight' : RegExp.$1);
+		if (/^http:\/\/(beta.)?leekwars.com\/(leek|fight|report|farmer)\/([0-9]+)$/i.test(self.href)) {
+			var link_type = ((RegExp.$2 == 'fight') ? 'fight' : RegExp.$2);
 			return {
 				type: link_type,
-				id: RegExp.$2
+				id: RegExp.$3
 			};
 		}
 
 		// Cas d'un lien xlink:href vers une page leek|fight|report|farmer
-		if (/^(?:http:\/\/beta.leekwars.com)?\/(leek|fight|report|farmer)\/([0-9]+)$/i.test(self.getAttributeNS("http://www.w3.org/1999/xlink", "href"))) {
-			var link_type = ((RegExp.$1 == 'fight') ? 'fight' : RegExp.$1);
+		if (/^(?:http:\/\/(beta.)?leekwars.com)?\/(leek|fight|report|farmer)\/([0-9]+)$/i.test(
+                    self.getAttributeNS("http://www.w3.org/1999/xlink", "href"))) {
+			var link_type = ((RegExp.$2 == 'fight') ? 'fight' : RegExp.$2);
 			return {
 				type: link_type,
-				id: RegExp.$2
+				id: RegExp.$3
 			};
 		}
 
@@ -633,7 +654,7 @@ function display_tooltip(target) {
 // Défini la position du tooltip en fonction de sa taille et des contraintes des bordures de la page
 function position_tooltip(tooltip, document_height, posX, posY) {
 	// On redéfini la position x à zéro pour corriger un problème d'affichage avec les rapports de combats
-	//tooltip.style.left = '0px';
+	tooltip.style.left = '0px';
 
 	// Calcul la nouvelle position en x
 	posX = posX - tooltip.offsetWidth / 2;
@@ -824,7 +845,7 @@ function fill_leek(tooltip, target, $data) {
 		talent.innerHTML += '<img src="http://static.leekwars.com/image/talent.png"/>';
 		talent.innerHTML += $data.leek.talent;
 		if ($data.leek.talent_more != '') {
-			talent.innerHTML += ' (' + ($data.leek.talent_more > 0 ? '+' : '') + $data.leek.talent_more +')';
+			talent.innerHTML += ' (' + ($data.leek.talent_more != null ? '+' : '') + $data.leek.talent_more +')';
 		}
 		talent.title = 'Talent';
 	} else {
@@ -896,30 +917,67 @@ function fill_leek(tooltip, target, $data) {
 	tooltip.appendChild(chips);
 }
 
-function buildSoloReport(tableData, bonus, ai_times) {
+function getCpuAndCombatId(leek, ai_times) {
+    var cpu = -1;
+    var leekCombatId = -1;
+    for (var j = 0; j < ai_times.length; j++) {
+        if (ai_times[j].id == leek.id) {
+            cpu = ai_times[j].cpu_time;
+            leekCombatId = ai_times[j].fid;
+            break;
+        }
+    }
+
+    return [cpu, leekCombatId];
+}
+
+function getBulbsCpu(leekCombatId, fight_data_leeks, ai_times) {
+    var bulbcpu = 0;
+    var hasBulb = false;
+    for (var j = 0; j < fight_data_leeks.length; j++) {
+        var bulbId = -1;
+        if (fight_data_leeks[j].summon && fight_data_leeks[j].owner == leekCombatId) {
+            hasBulb = true;
+            bulbId = fight_data_leeks[j].id;
+            for (var k = 0; k < ai_times.length; k++) {
+                if (ai_times[k].fid == bulbId) {
+                    bulbcpu += ai_times[k].time;
+                }
+            }
+        }
+    }
+    if (hasBulb) {
+        return bulbcpu;
+    } else {
+        return -1;
+    }
+}
+
+function buildSoloReport(tableData, bonus, ai_times, fight_data_leeks) {
 	var table = '<table class="report"> <tbody><tr><th>Poireau</th><th>Niveau</th><th>XP</th><th class="gain">Talent</th><th class="gain">Habs</th><th>CPU time</th></tr>';
 
 	for (var i = 0; i < tableData.length; i++) {
-		var l = tableData[i];
-		var cpu = 0;
-		for (var j = 0; j < ai_times.length; j++) {
-			if (ai_times[j].id == l.id) {
-				cpu = ai_times[j].cpu_time;
-				break;
-			}
-		}
+		var leek = tableData[i];
+        var leekInfos = getCpuAndCombatId(leek, ai_times);
+		var cpu = leekInfos[0];
+        var leekCombatId = leekInfos[1];
+
+        var bulbcpu = getBulbsCpu(leekCombatId, fight_data_leeks, ai_times);
 
 		table += '<tr>'
-			+ '<td class="name">' + (l.dead ? '<span class="dead"> </span>' : '')
-				+ '<a href="http://beta.leekwars.com/leek/' + l.id + '">' + l.name + '</a></td>'
-			+ '<td class="level">' + l.level + '</td>'
-			+ '<td class="xp">' + l.xp + (l.td > 0 ? (' <span class="talent-bonus" >+' + l.tb  + '%</span>') : '')
+			+ '<td class="name">' + (leek.dead ? '<span class="dead"> </span>' : '')
+				+ '<a href="http://beta.leekwars.com/leek/' + leek.id + '">' + leek.name + '</a></td>'
+			+ '<td class="level">' + leek.level + '</td>'
+			+ '<td class="xp">' + leek.xp
+                + (leek.td > 0 ? (' <span class="talent-bonus" >+' + leek.tb  + '%</span>') : '')
 				+ (bonus > 1 ? '<span class="bonus" >x' + bonus + '</span>' : '')
 				+ '</td>'
-			+ '<td><img src="http://static.beta.leekwars.com/image/talent.png" style="width: 18px"/>' + nullSafe(l.talent, 0) + ' ' + (l.talent_gain > 0 ? '+' : '') + nullSafe(l.talent_gain, '') + '</td>'
-			+ '<td class="money" style="vertical-align:center;"><span>' + l.money
+			+ '<td><img src="http://static.beta.leekwars.com/image/talent.png" style="width: 18px"/>'
+                + nullSafe(leek.talent, 0) + ' ' + (leek.talent_gain > 0 ? '+' : '')
+                + nullSafe(leek.talent_gain, '') + '</td>'
+			+ '<td class="money" style="vertical-align:center;"><span>' + leek.money
 				+ ' <span class="hab"> </span></span></td>'
-			+ '<td>' + cpu + ' ms</td>'
+			+ '<td>' + cpu + ' ms' + (bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
 			+ '</tr>';
 	}
 
@@ -928,7 +986,7 @@ function buildSoloReport(tableData, bonus, ai_times) {
 	return table;
 }
 
-function buildFarmerReport(farmerData, tableData, bonus, ai_times) {
+function buildFarmerReport(farmerData, tableData, bonus, ai_times, fight_data_leeks) {
 	var table = '<table class="report"> <tbody><tr><th>Éleveur</th><th>Talent</th></tr>';
 	table += '<tr><td><a href="http://beta.leekwars.com/farmer/' + farmerData.id + '">' + farmerData.name
 		+ '</a></td>'
@@ -938,25 +996,24 @@ function buildFarmerReport(farmerData, tableData, bonus, ai_times) {
 	table += '<table class="report"> <tbody><tr><th>Poireau</th><th>Niveau</th><th>XP</th><th class="gain">Habs</th><th>CPU time</th></tr>';
 
 	for (var i = 0; i < tableData.length; i++) {
-		var l = tableData[i];
-		var cpu = 0;
-		for (var j = 0; j < ai_times.length; j++) {
-			if (ai_times[j].id == l.id) {
-				cpu = ai_times[j].cpu_time;
-				break;
-			}
-		}
+		var leek = tableData[i];
+		var leekInfos = getCpuAndCombatId(leek, ai_times);
+		var cpu = leekInfos[0];
+        var leekCombatId = leekInfos[1];
+
+        var bulbcpu = getBulbsCpu(leekCombatId, fight_data_leeks, ai_times);
 
 		table += '<tr>'
-			+ '<td class="name">' + (l.dead ? '<span class="dead"> </span>' : '')
-				+ '<a href="http://beta.leekwars.com/leek/' + l.id + '">' + l.name + '</a></td>'
-			+ '<td class="level">' + l.level + '</td>'
-			+ '<td class="xp">' + l.xp + (l.td > 0 ? (' <span class="talent-bonus">+' + l.tb  + '%</span>') : '')
+			+ '<td class="name">' + (leek.dead ? '<span class="dead"> </span>' : '')
+				+ '<a href="http://beta.leekwars.com/leek/' + leek.id + '">' + leek.name + '</a></td>'
+			+ '<td class="level">' + leek.level + '</td>'
+			+ '<td class="xp">' + leek.xp
+                + (leek.td > 0 ? (' <span class="talent-bonus">+' + leek.tb  + '%</span>') : '')
 				+ (bonus > 1 ? '<span class="bonus">x' + bonus + '</span>' : '')
 				+ '</td>'
-			+ '<td class="money" style="vertical-align:center;"><span>' + l.money
+			+ '<td class="money" style="vertical-align:center;"><span>' + leek.money
 				+ ' <span class="hab"> </span></span></td>'
-			+ '<td>' + cpu + ' ms</td>'
+			+ '<td>' + cpu + ' ms' + (bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
 			+ '</tr>';
 	}
 
@@ -969,7 +1026,7 @@ function nullSafe(data, defaultValue) {
 	return data != null ? data : defaultValue;
 }
 
-function buildTeamReport(teamData, tableData, bonus, ai_times) {
+function buildTeamReport(teamData, tableData, bonus, ai_times, fight_data_leeks) {
 	var table = '<table class="report"> <tbody><tr><th>Équipe</th><th>Niveau</th><th>XP</th><th>Talent</th></tr>';
 	table += '<tr><td><a href="http://beta.leekwars.com/team/' + teamData.id + '">' + teamData.name + '</a></td>'
 		+ '<td>' + teamData.level + '</td>'
@@ -980,25 +1037,24 @@ function buildTeamReport(teamData, tableData, bonus, ai_times) {
 	table += '<table class="report"> <tbody><tr><th>Poireau</th><th>Niveau</th><th>XP</th><th class="gain">Habs</th><th>CPU time</th></tr>';
 
 	for (var i = 0; i < tableData.length; i++) {
-		var l = tableData[i];
-		var cpu = 0;
-		for (var j = 0; j < ai_times.length; j++) {
-			if (ai_times[j].id == l.id) {
-				cpu = ai_times[j].cpu_time;
-				break;
-			}
-		}
+		var leek = tableData[i];
+		var leekInfos = getCpuAndCombatId(leek, ai_times);
+		var cpu = leekInfos[0];
+        var leekCombatId = leekInfos[1];
+
+        var bulbcpu = getBulbsCpu(leekCombatId, fight_data_leeks, ai_times);
 
 		table += '<tr>'
-			+ '<td class="name">' + (l.dead ? '<span class="dead"> </span>' : '')
-				+ '<a href="http://beta.leekwars.com/leek/' + l.id + '">' + l.name + '</a></td>'
-			+ '<td class="level">' + l.level + '</td>'
-			+ '<td class="xp">' + l.xp + (l.td > 0 ? (' <span class="talent-bonus">+' + l.tb  + '%</span>') : '')
+			+ '<td class="name">' + (leek.dead ? '<span class="dead"> </span>' : '')
+				+ '<a href="http://beta.leekwars.com/leek/' + leek.id + '">' + leek.name + '</a></td>'
+			+ '<td class="level">' + leek.level + '</td>'
+			+ '<td class="xp">' + leek.xp
+                + (leek.td > 0 ? (' <span class="talent-bonus">+' + leek.tb  + '%</span>') : '')
 				+ (bonus > 1 ? '<span class="bonus">x' + bonus + '</span>' : '')
 				+ '</td>'
-			+ '<td class="money" style="vertical-align:center;"><span>' + l.money
+			+ '<td class="money" style="vertical-align:center;"><span>' + leek.money
 				+ ' <span class="hab"> </span></span></td>'
-			+ '<td>' + cpu + ' ms</td>'
+			+ '<td>' + cpu + ' ms' +(bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
 			+ '</tr>';
 	}
 
@@ -1016,8 +1072,10 @@ function fill_report(tooltip, target, $data) {
 		return;
 	}
 
-	tooltip.innerHTML += '<a class="tiny_fight_link" href="http://beta.leekwars.com/fight/' + target.id + '" title="Combat"><img src="http://static.leekwars.com/image/garden.png"></a>';
-	tooltip.innerHTML += '<a class="tiny_fight_link" id="reporttip" href="http://beta.leekwars.com/report/' + target.id + '" title="Rapport de combat"><img src="http://static.leekwars.com/image/forum.png"></a>';
+	tooltip.innerHTML += '<a class="tiny_fight_link" href="http://beta.leekwars.com/fight/'
+        + target.id + '" title="Combat"><img src="http://static.leekwars.com/image/garden.png"></a>';
+	tooltip.innerHTML += '<a class="tiny_fight_link" id="reporttip" href="http://beta.leekwars.com/report/'
+        + target.id + '" title="Rapport de combat"><img src="http://static.leekwars.com/image/forum.png"></a>';
 
 	var duration = document.createElement('div');
 	duration.innerHTML = '<div class="duration" old_id="duration">Durée : ' + $data.fight.report.duration
@@ -1038,8 +1096,10 @@ function fill_report(tooltip, target, $data) {
 			winData = $data.fight.report.leeks2;
 			loseData = $data.fight.report.leeks1;
 		}
-		winners = buildSoloReport(winData, $data.fight.report.bonus, $data.fight.report.ai_times);
-		losers = buildSoloReport(loseData, $data.fight.report.bonus, $data.fight.report.ai_times);
+		winners = buildSoloReport(winData, $data.fight.report.bonus, $data.fight.report.ai_times,
+            $data.fight.data.leeks);
+		losers = buildSoloReport(loseData, $data.fight.report.bonus, $data.fight.report.ai_times,
+         $data.fight.data.leeks);
 	} else if ($data.fight.type == 'farmer') {
 		var winData = $data.fight.report.leeks1;
 		var winFarmerData = $data.fight.report.farmer1;
@@ -1051,8 +1111,10 @@ function fill_report(tooltip, target, $data) {
 			loseData = $data.fight.report.leeks1;
 			loseFarmerData = $data.fight.report.farmer1;
 		}
-		winners = buildFarmerReport(winFarmerData, winData, $data.fight.report.bonus, $data.fight.report.ai_times);
-		losers = buildFarmerReport(loseFarmerData, loseData, $data.fight.report.bonus, $data.fight.report.ai_times);
+		winners = buildFarmerReport(winFarmerData, winData, $data.fight.report.bonus, $data.fight.report.ai_times,
+            $data.fight.data.leeks);
+		losers = buildFarmerReport(loseFarmerData, loseData, $data.fight.report.bonus, $data.fight.report.ai_times,
+            $data.fight.data.leeks);
 	}  else if ($data.fight.type == 'team') {
 		var winData = $data.fight.report.leeks1;
 		var winFarmerData = $data.fight.report.team1;
@@ -1064,8 +1126,10 @@ function fill_report(tooltip, target, $data) {
 			loseData = $data.fight.report.leeks1;
 			loseFarmerData = $data.fight.report.team1;
 		}
-		winners = buildTeamReport(winFarmerData, winData, $data.fight.report.bonus, $data.fight.report.ai_times);
-		losers = buildTeamReport(loseFarmerData, loseData, $data.fight.report.bonus, $data.fight.report.ai_times);
+		winners = buildTeamReport(winFarmerData, winData, $data.fight.report.bonus, $data.fight.report.ai_times,
+            $data.fight.data.leeks);
+		losers = buildTeamReport(loseFarmerData, loseData, $data.fight.report.bonus, $data.fight.report.ai_times,
+            $data.fight.data.leeks);
 	}
 
 	// S'il y a trop de poireaux, on affiche les tableaux de chaque équipe côte à côte
@@ -1204,7 +1268,8 @@ function fill_farmer(tooltip, target, $data) {
     		if(leeks.hasOwnProperty(l)) {
 				var id = leeks[l].id;
 
-				// Prépare la ligne de chaque poireau. Permet de les garder toujours triés, même si les requêtes ajax arrivent dans le désordre
+				// Prépare la ligne de chaque poireau.
+                // Permet de les garder toujours triés, même si les requêtes ajax arrivent dans le désordre
 				$('#leeks_table_' + target.id).append($('<tr id="farmer_leek_table_' + id + '"></tr>'));
 
 				// Récupère les données du poireau
@@ -1275,7 +1340,11 @@ function fill_team(tooltip, target, $data) {
 // Crée le contenu du tooltip chip/weapon
 function fill_market_item(tooltip, target, $data) {
 	var item_id = 'item-1' ;
-	$data.find('td#items div').each(function(){if($(this).attr('name') === target.type + '_' + target.id) {item_id = $(this).attr('id') ; }}) ;
+	$data.find('td#items div').each(function(){
+        if($(this).attr('name') === target.type + '_' + target.id) {
+            item_id = $(this).attr('id') ;
+        }
+    }) ;
 
 	var container = document.createElement('div') ;
 	container.className = 'hover_item_preview' ;
