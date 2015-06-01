@@ -618,7 +618,13 @@ function display_tooltip(target) {
 			// Supprime les div de class .tooltip, qui sont inutiles et provoquent des erreurs d'affichage
 			$('#hover_tooltip .tooltip').remove();
 
-			// Repositionne le tooltip vu ses nouvelles dimensions
+    		// On l'affiche
+    		tooltip.style.display = 'block';
+
+    		// On affiche tooltip au-dessus des éventuels autres, et on incrémente le compteur
+    		tooltip.style.zIndex = ++z_index;
+
+            // Repositionne le tooltip vu ses nouvelles dimensions
 			position_tooltip(tooltip, document_height, posX, posY);
 		}, "json");
 
@@ -634,11 +640,11 @@ function display_tooltip(target) {
 		$('#' + id).bind('mouseout', function() {
 			$(this).stop().fadeOut('fast');
 		});
-	}
+    }
 
 	if (tooltip.style.display != 'block') {
 		// Si le tooltip vient d'être initialisé, ou s'il était masqué
-		console.log("display");
+		console.log("display posX " + posX + " posY " + posY);
 
 		// On l'affiche
 		tooltip.style.display = 'block';
@@ -648,7 +654,7 @@ function display_tooltip(target) {
 
 		// On place le tooltip dans la page
 		position_tooltip(tooltip, document_height, posX, posY);
-	}
+    }
 }
 
 
@@ -978,7 +984,7 @@ function buildSoloReport(tableData, bonus, ai_times, fight_data_leeks) {
                 + nullSafe(leek.talent_gain, '') + '</td>'
 			+ '<td class="money" style="vertical-align:center;"><span>' + leek.money
 				+ ' <span class="hab"> </span></span></td>'
-			+ '<td>' + cpu + ' ms' + (bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
+			+ '<td>' + cpu + 'ms' + (bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
 			+ '</tr>';
 	}
 
@@ -1014,7 +1020,7 @@ function buildFarmerReport(farmerData, tableData, bonus, ai_times, fight_data_le
 				+ '</td>'
 			+ '<td class="money" style="vertical-align:center;"><span>' + leek.money
 				+ ' <span class="hab"> </span></span></td>'
-			+ '<td>' + cpu + ' ms' + (bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
+			+ '<td>' + cpu + 'ms' + (bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
 			+ '</tr>';
 	}
 
@@ -1055,7 +1061,7 @@ function buildTeamReport(teamData, tableData, bonus, ai_times, fight_data_leeks)
 				+ '</td>'
 			+ '<td class="money" style="vertical-align:center;"><span>' + leek.money
 				+ ' <span class="hab"> </span></span></td>'
-			+ '<td>' + cpu + ' ms' +(bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
+			+ '<td>' + cpu + 'ms' +(bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
 			+ '</tr>';
 	}
 
@@ -1153,9 +1159,6 @@ function fill_report(tooltip, target, $data) {
 	}
 
 	tooltip.innerHTML += result;
-
-	// Nettoie les id pour ne pas avoir de conflit
-	tooltip.innerHTML += $data.find('#report-general').html().replace(/id=/g, 'old_id=');
 }
 
 // Créé le contenu du tooltip farmer
