@@ -499,6 +499,7 @@ function match_test(self) {
 	if (!/menu|menu-wrapper|menu-button|tabs/i.test(self.parentNode.id) &&
 	 		!/menu|menu-wrapper|menu-button|tabs/i.test(self.parentNode.parentNode.id) &&
 			!/menu|menu-wrapper|menu-button|tabs/i.test(self.parentNode.parentNode.parentNode.id) &&
+            !/loading/i.test(self.parentNode.parentNode.parentNode.parentNode.parentNode.id) &&
 			!/reporttip/i.test(self.id)) {
 
 		// Cas d'un div de class leek dans le potager
