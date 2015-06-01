@@ -521,7 +521,7 @@ function match_test(self) {
 
 		// Cas d'un lien href vers une page leek|fight|report|farmer
 		if (/^http:\/\/(beta.)?leekwars.com\/(leek|fight|report|farmer)\/([0-9]+)$/i.test(self.href)) {
-			var link_type = ((RegExp.$2 == 'fight') ? 'fight' : RegExp.$2);
+			var link_type = ((RegExp.$2 == 'report') ? 'fight' : RegExp.$2);
 			return {
 				type: link_type,
 				id: RegExp.$3
@@ -531,7 +531,7 @@ function match_test(self) {
 		// Cas d'un lien xlink:href vers une page leek|fight|report|farmer
 		if (/^(?:http:\/\/(beta.)?leekwars.com)?\/(leek|fight|report|farmer)\/([0-9]+)$/i.test(
                     self.getAttributeNS("http://www.w3.org/1999/xlink", "href"))) {
-			var link_type = ((RegExp.$2 == 'fight') ? 'fight' : RegExp.$2);
+			var link_type = ((RegExp.$2 == 'report') ? 'fight' : RegExp.$2);
 			return {
 				type: link_type,
 				id: RegExp.$3
