@@ -1,6 +1,6 @@
 ﻿// ==UserScript==
 // @name       		LeekWars AdvancedTooltips V2
-// @version			0.0.4
+// @version			0.0.5
 // @author			yLark, asmodai27, artorias
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @match      		http://beta.leekwars.com/*
@@ -496,9 +496,9 @@ function set_event_listeners() {
 // Contrôle que l'élément survolé est bien susceptible d'affiche un tooltip
 function match_test(self) {
 	// Exclusion des liens contenus dans le menu et dans les tabs. Évite de spammer des tooltips
-	if (!/menu|menu-wrapper|menu-button|tabs/i.test(self.parentNode.id) &&
-	 		!/menu|menu-wrapper|menu-button|tabs/i.test(self.parentNode.parentNode.id) &&
-			!/menu|menu-wrapper|menu-button|tabs/i.test(self.parentNode.parentNode.parentNode.id) &&
+	if (!/menu|menu-wrapper|menu-button|loading|game|tabs/i.test(self.parentNode.id) &&
+	 		!/menu|menu-wrapper|menu-button|loading|game|tabs/i.test(self.parentNode.parentNode.id) &&
+			!/menu|menu-wrapper|menu-button|loading|game|tabs/i.test(self.parentNode.parentNode.parentNode.id) &&
             !/loading/i.test(self.parentNode.parentNode.parentNode.parentNode.parentNode.id) &&
 			!/reporttip/i.test(self.id)) {
 
@@ -846,7 +846,7 @@ function fill_leek(tooltip, target, $data) {
 		talent.innerHTML += '<img src="http://static.leekwars.com/image/talent.png"/>';
 		talent.innerHTML += $data.leek.talent;
 		if ($data.leek.talent_more != '') {
-			talent.innerHTML += ' (' + ($data.leek.talent_more != null ? '+' : '') + $data.leek.talent_more +')';
+			talent.innerHTML += ' (' + ($data.leek.talent_more > 0 ? '+' : '') + $data.leek.talent_more +')';
 		}
 		talent.title = 'Talent';
 	} else {
