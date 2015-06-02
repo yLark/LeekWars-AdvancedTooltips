@@ -1,6 +1,6 @@
 ﻿// ==UserScript==
 // @name       		LeekWars AdvancedTooltips V2
-// @version			0.0.5
+// @version			0.0.6
 // @author			yLark, asmodai27, artorias
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @match      		http://beta.leekwars.com/*
@@ -925,6 +925,10 @@ function fill_leek(tooltip, target, $data) {
 }
 
 function getCpuAndCombatId(leek, ai_times) {
+    if (ai_times == null) {
+        return [-1, -1];
+    }
+
     var cpu = -1;
     var leekCombatId = -1;
     for (var j = 0; j < ai_times.length; j++) {
@@ -939,6 +943,10 @@ function getCpuAndCombatId(leek, ai_times) {
 }
 
 function getBulbsCpu(leekCombatId, fight_data_leeks, ai_times) {
+    if (ai_times == null) {
+        return [-1, -1];
+    }
+
     var bulbcpu = 0;
     var hasBulb = false;
     for (var j = 0; j < fight_data_leeks.length; j++) {
@@ -984,7 +992,8 @@ function buildSoloReport(tableData, bonus, ai_times, fight_data_leeks) {
                 + nullSafe(leek.talent_gain, '') + '</td>'
 			+ '<td class="money" style="vertical-align:center;"><span>' + leek.money
 				+ ' <span class="hab"> </span></span></td>'
-			+ '<td>' + cpu + 'ms' + (bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
+			+ '<td>' + (cpu > -1 ? cpu + 'ms' : '')
+                + (bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
 			+ '</tr>';
 	}
 
@@ -1020,7 +1029,8 @@ function buildFarmerReport(farmerData, tableData, bonus, ai_times, fight_data_le
 				+ '</td>'
 			+ '<td class="money" style="vertical-align:center;"><span>' + leek.money
 				+ ' <span class="hab"> </span></span></td>'
-			+ '<td>' + cpu + 'ms' + (bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
+			+ '<td>' + (cpu > -1 ? cpu + 'ms' : '')
+                + (bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
 			+ '</tr>';
 	}
 
@@ -1061,7 +1071,8 @@ function buildTeamReport(teamData, tableData, bonus, ai_times, fight_data_leeks)
 				+ '</td>'
 			+ '<td class="money" style="vertical-align:center;"><span>' + leek.money
 				+ ' <span class="hab"> </span></span></td>'
-			+ '<td>' + cpu + 'ms' +(bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
+			+ '<td>' + (cpu > -1 ? cpu + 'ms' : '')
+                + (bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
 			+ '</tr>';
 	}
 
