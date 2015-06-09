@@ -1,6 +1,6 @@
 ﻿// ==UserScript==
 // @name       		LeekWars AdvancedTooltips V2
-// @version			0.0.6
+// @version			0.0.7
 // @author			yLark, asmodai27, artorias
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @match      		http://leekwars.com/*
@@ -16,10 +16,10 @@ function main () {
 // Ajout de la feuille de style des tooltips
 addGlobalStyle('\
 .state.online {\
-    background-image: url("http://static.leekwars.com/image/connected.png");\
+    background-image: url("http://leekwars.com/static//image/connected.png");\
 }\
 .state {\
-    background-image: url("http://static.leekwars.com/image/disconnected.png");\
+    background-image: url("http://leekwars.com/static//image/disconnected.png");\
     display: inline-block;\
     height: 10px;\
     margin-left: 8px;\
@@ -140,7 +140,7 @@ addGlobalStyle('\
 	margin-left: 23px;\
 }\
 .report .dead {\
-	background-image: url("http://static.leekwars.com/image/cross.png");\
+	background-image: url("http://leekwars.com/static//image/cross.png");\
     background-repeat: no-repeat;\
 	width: 15px;\
 	height: 20px;\
@@ -200,7 +200,7 @@ addGlobalStyle('\
 	height: 18px;\
 	vertical-align: bottom;\
 	display: inline-block;\
-	background-image: url("http://static.leekwars.com/image/hab.png");\
+	background-image: url("http://leekwars.com/static//image/hab.png");\
 }\
 .hover_tooltip .report .bonus {\
 	background-color: #0075DF;\
@@ -561,7 +561,7 @@ function display_tooltip(target) {
 		tooltip = document.createElement('div');
 		tooltip.id = id;
 		tooltip.className = 'hover_tooltip';
-		tooltip.innerHTML = '<img src="http://static.leekwars.com/image/loader.gif" alt="" style="display:block;margin:auto;">';
+		tooltip.innerHTML = '<img src="http://leekwars.com/static//image/loader.gif" alt="" style="display:block;margin:auto;">';
 		hover_tooltip.append($(tooltip));
 
 		var url;
@@ -849,7 +849,7 @@ function fill_leek(tooltip, target, $data) {
 	// Ajout du talent
 	var talent = document.createElement('div');
 	if ($data.leek.talent != '') { // Si le poireau a un talent
-		talent.innerHTML += '<img src="http://static.leekwars.com/image/talent.png"/>';
+		talent.innerHTML += '<img src="http://leekwars.com/static//image/talent.png"/>';
 		talent.innerHTML += $data.leek.talent;
 		if ($data.leek.talent_more != '') {
 			talent.innerHTML += ' (' + ($data.leek.talent_more > 0 ? '+' : '') + $data.leek.talent_more +')';
@@ -871,28 +871,28 @@ function fill_leek(tooltip, target, $data) {
 	var stats = document.createElement('div');
 	stats.className = 'hover_stats';
 	stats.innerHTML += '<div title="Points de vie" class="life">'
-		+ '<img src="http://static.leekwars.com/image/carac/life.png"/>'
+		+ '<img src="http://leekwars.com/static//image/carac/life.png"/>'
 		+ $data.leek.life + '</div>';
 	stats.innerHTML += '<div title="Fréquence" class="frequency">'
-		+ '<img src="http://static.leekwars.com/image/carac/frequency.png"/>'
+		+ '<img src="http://leekwars.com/static//image/carac/frequency.png"/>'
 		+ $data.leek.frequency + '</div>';
 	stats.innerHTML += '<div title="Force" class="strength">'
-		+ '<img src="http://static.leekwars.com/image/carac/strength.png"/>'
+		+ '<img src="http://leekwars.com/static//image/carac/strength.png"/>'
 		+ $data.leek.strength + '</div>';
 	stats.innerHTML += '<div title="Points de tour" class="tp">'
-		+ '<img src="http://static.leekwars.com/image/carac/tp.png"/>'
+		+ '<img src="http://leekwars.com/static//image/carac/tp.png"/>'
 		+ $data.leek.tp + '</div>';
 	stats.innerHTML += '<div title="Agilité" class="agility">'
-		+ '<img src="http://static.leekwars.com/image/carac/agility.png"/>'
+		+ '<img src="http://leekwars.com/static//image/carac/agility.png"/>'
 		+ $data.leek.agility + '</div>';
 	stats.innerHTML += '<div title="Points de mouvement" class="mp">'
-		+ '<img src="http://static.leekwars.com/image/carac/mp.png"/>'
+		+ '<img src="http://leekwars.com/static//image/carac/mp.png"/>'
 		+ $data.leek.mp + '</div>';
 	stats.innerHTML += '<div title="Sagesse" class="wisdom">'
-		+ '<img src="http://static.leekwars.com/image/carac/wisdom.png"/>'
+		+ '<img src="http://leekwars.com/static//image/carac/wisdom.png"/>'
 		+ $data.leek.wisdom + '</div>';
 	stats.innerHTML += '<div  title="Cœurs" class="cores">'
-		+ '<img src="http://static.leekwars.com/image/carac/cores.png"/>'
+		+ '<img src="http://leekwars.com/static//image/carac/cores.png"/>'
 		+ $data.leek.cores + '</div>';
 	stats.innerHTML = stats.innerHTML.replace(/id=/g, 'class=');
 	tooltip.appendChild(stats);
@@ -903,7 +903,7 @@ function fill_leek(tooltip, target, $data) {
 	for (var i = 0; i < $data.leek.weapons.length; i++) {
 		var w = $data.leek.weapons[i].template;
 		weapons.innerHTML += '<div style="margin: 4px;display: block;">'
-			+ '<img src="http://static.leekwars.com/image/weapon/' + img[w]
+			+ '<img src="http://leekwars.com/static/image/weapon/' + img[w]
 			+ '.png"/></div>';
 	}
 	weapons.className = 'leek-weapons';
@@ -917,7 +917,7 @@ function fill_leek(tooltip, target, $data) {
 	for (var i = 0; i < $data.leek.chips.length; i++) {
 		var c = $data.leek.chips[i].template;
 		chips.innerHTML += '<div style="display: inline-block; vertical-align: bottom; margin: 4px;">'
-			+ '<img style="width: 55px;vertical-align: bottom;" src="http://static.leekwars.com/image/chip/'
+			+ '<img style="width: 55px;vertical-align: bottom;" src="http://leekwars.com/static//image/chip/'
 			+ img[c] + '.png"/></div>';
 	}
 	chips.className = 'leek-chips';
@@ -987,7 +987,7 @@ function buildSoloReport(tableData, bonus, ai_times, fight_data_leeks) {
                 + (leek.td > 0 ? (' <span class="talent-bonus" >+' + leek.tb  + '%</span>') : '')
 				+ (bonus > 1 ? '<span class="bonus" >x' + bonus + '</span>' : '')
 				+ '</td>'
-			+ '<td><img src="http://static.leekwars.com/image/talent.png" style="width: 18px"/>'
+			+ '<td><img src="http://leekwars.com/static//image/talent.png" style="width: 18px"/>'
                 + nullSafe(leek.talent, 0) + ' ' + (leek.talent_gain > 0 ? '+' : '')
                 + nullSafe(leek.talent_gain, '') + '</td>'
 			+ '<td class="money" style="vertical-align:center;"><span>' + leek.money
@@ -1091,9 +1091,9 @@ function fill_report(tooltip, target, $data) {
 	}
 
 	tooltip.innerHTML += '<a class="tiny_fight_link" href="http://leekwars.com/fight/'
-        + target.id + '" title="Combat"><img src="http://static.leekwars.com/image/garden.png"></a>';
+        + target.id + '" title="Combat"><img src="http://leekwars.com/static//image/garden.png"></a>';
 	tooltip.innerHTML += '<a class="tiny_fight_link" id="reporttip" href="http://leekwars.com/report/'
-        + target.id + '" title="Rapport de combat"><img src="http://static.leekwars.com/image/forum.png"></a>';
+        + target.id + '" title="Rapport de combat"><img src="http://leekwars.com/static//image/forum.png"></a>';
 
 	var duration = document.createElement('div');
 	duration.innerHTML = '<div class="duration" old_id="duration">Durée : ' + $data.fight.report.duration
@@ -1178,7 +1178,7 @@ function fill_farmer(tooltip, target, $data) {
 	var avatar = document.createElement('div');
 	avatar.className = 'AT_avatar';
 	avatar.innerHTML = '<a title="Éleveur" href="http://leekwars.com/farmer/' + target.id
-		+ '"><img src="http://static.leekwars.com/image/avatar/' + $data.farmer.id + '"></a>';
+		+ '"><img src="http://leekwars.com/static//image/avatar/' + $data.farmer.id + '"></a>';
 	tooltip.appendChild(avatar);
 
 	// Ajout du nom de l'éleveur
@@ -1218,14 +1218,14 @@ function fill_farmer(tooltip, target, $data) {
 	send_message.className = 'AT_send_message';
 	send_message.innerHTML = '<a title="Envoyer un message à ' + farmer_name
 		+ '" href="http://leekwars.com/messages/new/' + target.id
-		+ '"><img src="http://static.leekwars.com/image/messages.png" alt="Envoyer un message"></a>';
+		+ '"><img src="http://leekwars.com/static//image/messages.png" alt="Envoyer un message"></a>';
 	AT_basic.appendChild(send_message);
 
 	// Ajout du talent
 	var talent = document.createElement('div');
 	if ($data.farmer.talent != '') {
 		// Si le poireau a un talent
-		talent.innerHTML += '<img src="http://static.leekwars.com/image/talent.png">';
+		talent.innerHTML += '<img src="http://leekwars.com/static//image/talent.png">';
 		talent.innerHTML += $data.farmer.talent;
 		if ($data.farmer.talent_more != '') {
 			talent.innerHTML += ' (' + ($data.farmer.talent_more > 0 ? '+' : '') + $data.farmer.talent_more +')';
@@ -1253,15 +1253,15 @@ function fill_farmer(tooltip, target, $data) {
 	if (display_farmer_leek_table == 1) { // Si l'option a été cochée dans les paramètres, on affiche
 
 		tooltip.innerHTML += '<table id="leeks_table_' + target.id + '" class="hover_leeks_table"><tbody><tr><th>Poireau</th><th>Niveau</th><th>Ratio</th>\
-		   <th><img src="http://static.leekwars.com/image/talent.png" alt="Talent" title="Talent"></img></th>\
-		   <th><img src="http://static.leekwars.com/image/icon_life.png" alt="Points de vie" title="Points de vie"></img></th>\
-		   <th><img src="http://static.leekwars.com/image/icon_strength.png" alt="Force" title="Force"></img></th>\
-		   <th><img src="http://static.leekwars.com/image/icon_agility.png" alt="Agilit&eacute;" title="Agilit&eacute;"></img></th>\
-		   <th><img src="http://static.leekwars.com/image/icon_widsom.png" alt="Sagesse" title="Sagesse"></img></th>\
-		   <th><img src="http://static.leekwars.com/image/icon_frequency.png" alt="Fr&eacute;quence" title="Fr&eacute;quence"></img></th>\
-		   <th><img src="http://static.leekwars.com/image/icon_tp.png" alt="Points de tour" title="Points de tour"></img></th>\
-		   <th><img src="http://static.leekwars.com/image/icon_mp.png" alt="Points de mouvement" title="Points de mouvement"></img></th>\
-		   <th><img src="http://static.leekwars.com/image/icon_cores.png" alt="C&oelig;urs" title="C&oelig;urs"></img></th>\
+		   <th><img src="http://leekwars.com/static//image/talent.png" alt="Talent" title="Talent"></img></th>\
+		   <th><img src="http://leekwars.com/image/icon_life.png" alt="Points de vie" title="Points de vie"></img></th>\
+		   <th><img src="http://leekwars.com/static/image/icon_strength.png" alt="Force" title="Force"></img></th>\
+		   <th><img src="http://leekwars.com/static/image/icon_agility.png" alt="Agilit&eacute;" title="Agilit&eacute;"></img></th>\
+		   <th><img src="http://leekwars.com/static/image/icon_widsom.png" alt="Sagesse" title="Sagesse"></img></th>\
+		   <th><img src="http://leekwars.com/static/image/icon_frequency.png" alt="Fr&eacute;quence" title="Fr&eacute;quence"></img></th>\
+		   <th><img src="http://leekwars.com/static/image/icon_tp.png" alt="Points de tour" title="Points de tour"></img></th>\
+		   <th><img src="http://leekwars.com/static/image/icon_mp.png" alt="Points de mouvement" title="Points de mouvement"></img></th>\
+		   <th><img src="http://leekwars.com/static/image/icon_cores.png" alt="C&oelig;urs" title="C&oelig;urs"></img></th>\
 		</tr></tbody></table>';
 
 		var leek_no = 0,
