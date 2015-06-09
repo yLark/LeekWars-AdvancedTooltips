@@ -1,9 +1,9 @@
 ﻿// ==UserScript==
 // @name       		LeekWars AdvancedTooltips V2
-// @version			0.0.6
+// @version			0.0.7
 // @author			yLark, asmodai27, artorias
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
-// @match      		http://beta.leekwars.com/*
+// @match      		http://leekwars.com/*
 // @grant			none
 // @require			https://code.jquery.com/jquery-2.1.1.min.js
 // @require			https://raw.githubusercontent.com/websanova/mousestop/master/mousestop.min.js
