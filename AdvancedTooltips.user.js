@@ -1,6 +1,6 @@
 ﻿// ==UserScript==
 // @name       		LeekWars AdvancedTooltips V2
-// @version			0.0.7
+// @version			0.0.8
 // @author			yLark, asmodai27, artorias
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @match      		http://leekwars.com/*
@@ -1254,7 +1254,7 @@ function fill_farmer(tooltip, target, $data) {
 
 		tooltip.innerHTML += '<table id="leeks_table_' + target.id + '" class="hover_leeks_table"><tbody><tr><th>Poireau</th><th>Niveau</th><th>Ratio</th>\
 		   <th><img src="http://leekwars.com/static//image/talent.png" alt="Talent" title="Talent"></img></th>\
-		   <th><img src="http://leekwars.com/image/icon_life.png" alt="Points de vie" title="Points de vie"></img></th>\
+		   <th><img src="http://leekwars.com/static/image/icon_life.png" alt="Points de vie" title="Points de vie"></img></th>\
 		   <th><img src="http://leekwars.com/static/image/icon_strength.png" alt="Force" title="Force"></img></th>\
 		   <th><img src="http://leekwars.com/static/image/icon_agility.png" alt="Agilit&eacute;" title="Agilit&eacute;"></img></th>\
 		   <th><img src="http://leekwars.com/static/image/icon_widsom.png" alt="Sagesse" title="Sagesse"></img></th>\
@@ -1305,7 +1305,7 @@ function fill_farmer(tooltip, target, $data) {
 					var mp = leek.mp;
 					var cores = leek.cores;
 
-					$('#farmer_leek_table_' + leek.id).append($('<td><a href="/leek/' + id + '">' + name + '</td>\
+					$('#farmer_leek_table_' + leek.id).append($('<td><a href="/leek/' + leek.id + '">' + name + '</td>\
 						<td>' + level + '</td><td>' + ratio + '</td><td>' + talent + '</td><td>' + life + '</td>\
 						<td>' + force + '</td><td>' + agility + '</td><td>' + wisdom + '</td><td>' + frequency + '</td>\
 						<td>' + tp + '</td><td>' + mp + '</td><td>' + cores + '</td>'));
