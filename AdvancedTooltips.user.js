@@ -1,9 +1,15 @@
 // ==UserScript==
 // @name       		LeekWars AdvancedTooltips
 <<<<<<< HEAD
+<<<<<<< HEAD
 // @version			0.3.9
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat ou d'une image de puce ou d'arme
 // @author			yLark, asmodai27
+=======
+// @version			0.4.0
+// @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
+// @author			yLark, asmodai27, artorias
+>>>>>>> Maj V2
 =======
 // @version			0.4.0
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
@@ -426,6 +432,7 @@ var z_index = 1000;
 
 // Création du div qui va accueillir tous les tooltips générés par le script
 <<<<<<< HEAD
+<<<<<<< HEAD
 var hover_tooltip = document.createElement('div');
 hover_tooltip.id = 'hover_tooltip';
 document.body.appendChild(hover_tooltip);
@@ -439,6 +446,8 @@ function set_event_listeners() {	// Recalcul des éléments à surveiller
 	$element.hover(	// Au survol de l'élément
 		function() {	// hover, mouse in
 =======
+=======
+>>>>>>> Maj V2
 var hover_tooltip = $('<div/>').attr('id', 'hover_tooltip');
 
 $(document).ready(function() {
@@ -459,6 +468,9 @@ function set_event_listeners() {
 	$element.unbind('mouseenter mouseleave');
 	$element.hover( // Au survol de l'élément
 		function() { // hover, mouse in
+<<<<<<< HEAD
+>>>>>>> Maj V2
+=======
 >>>>>>> Maj V2
 			var target = match_test(this);
 			if (target != null) {
@@ -562,12 +574,16 @@ function match_test(self) {
 			};
 		}
 <<<<<<< HEAD
+<<<<<<< HEAD
 		
 		// Cas d'une image de chip / arme (n'affiche rien si on est dans le market ou l'inventaire)
 		if(/^http:\/\/leekwars.com\/static\/image\/(chip|weapon)\/(.+)\.png$/i.test(self.src) && !(/^http:\/\/leekwars.com\/(market|inventory)(.*)/i.test(document.URL))){
 			return {type: RegExp.$1, id: RegExp.$2};
 		}
 		
+=======
+
+>>>>>>> Maj V2
 =======
 
 >>>>>>> Maj V2
@@ -595,6 +611,7 @@ function display_tooltip(target) {
 		tooltip.id = id;
 		tooltip.className = 'hover_tooltip';
 <<<<<<< HEAD
+<<<<<<< HEAD
 		tooltip.innerHTML = '<img src="http://static.leekwars.com/image/loader.gif" alt="" style="display:block;margin:auto;">';
 		hover_tooltip.appendChild(tooltip);
 		
@@ -608,6 +625,8 @@ function display_tooltip(target) {
 		}
 			
 =======
+=======
+>>>>>>> Maj V2
 		tooltip.innerHTML = '<img src="http://leekwars.com/static//image/loader.gif" alt="" style="display:block;margin:auto;">';
 		hover_tooltip.append($(tooltip));
 
@@ -619,6 +638,9 @@ function display_tooltip(target) {
 			url = 'http://leekwars.com/api/' + target.type + '/get/' + target.id;
 		}
 
+<<<<<<< HEAD
+>>>>>>> Maj V2
+=======
 >>>>>>> Maj V2
 		// Récupère le contenu de la page cible via ajax
 		$.get(url, function(data) {
@@ -658,6 +680,7 @@ function display_tooltip(target) {
 				});
 			}
 <<<<<<< HEAD
+<<<<<<< HEAD
 		  if(target.type === 'team')		fill_team(tooltip, target, $data);		// Si le lien pointe vers une page de team, on rempli le tooltip des données team
 			if(target.type === 'weapon' || target.type === 'chip') fill_market_item(tooltip, target, $data);
 				
@@ -666,6 +689,8 @@ function display_tooltip(target) {
 		});
 		
 =======
+=======
+>>>>>>> Maj V2
 
 			// Si le lien pointe vers une page de team, on rempli le tooltip des données team
 			if (target.type === 'team') fill_team(tooltip, target, $data);
@@ -687,6 +712,9 @@ function display_tooltip(target) {
 
 
 
+<<<<<<< HEAD
+>>>>>>> Maj V2
+=======
 >>>>>>> Maj V2
 		// Créé un handler pour garder le tooltip affiché quand il est survolé
 		$('#' + id).unbind('mouseover');
@@ -1409,6 +1437,7 @@ function fill_farmer(tooltip, target, $data) {
 function fill_team(tooltip, target, $data) {
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Crée le contenu du tooltip chip/weapon
 function fill_market_item(tooltip, target, $data) {
 	var item_id = 'item-1' ;
@@ -1420,6 +1449,8 @@ function fill_market_item(tooltip, target, $data) {
 	tooltip.appendChild(container);
 }
 =======
+=======
+>>>>>>> Maj V2
 }
 
 // Crée le contenu du tooltip chip/weapon
@@ -1430,6 +1461,9 @@ function fill_market_item(tooltip, target, $data) {
             item_id = $(this).attr('id') ;
         }
     }) ;
+<<<<<<< HEAD
+>>>>>>> Maj V2
+=======
 >>>>>>> Maj V2
 
 	var container = document.createElement('div') ;
