@@ -1,11 +1,8 @@
-// ==UserScript==
-// @name       		LeekWars AdvancedTooltips
-// @version			0.4.0
-// @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
+﻿// ==UserScript==
+// @name       		LeekWars AdvancedTooltips V2
+// @version			0.4.1
 // @author			yLark, asmodai27, artorias
-// @projectPage		https://github.com/yLark/LeekWars-AdvancedTooltips
-// @downloadURL		https://github.com/yLark/LeekWars-AdvancedTooltips/raw/master/AdvancedTooltips.user.js
-// @updateURL		https://github.com/yLark/LeekWars-AdvancedTooltips/raw/master/AdvancedTooltips.user.js
+// @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @match      		http://leekwars.com/*
 // @grant			none
 // @require			https://code.jquery.com/jquery-2.1.1.min.js
@@ -258,6 +255,7 @@ addGlobalStyle('\
 }\
 .AT_send_message img {\
 	width: 20px;\
+    float:left;\
 }\
 .hover_item_preview {\
 	margin: auto;\
@@ -834,7 +832,7 @@ function fill_leek(tooltip, target, $data) {
 
 	// Ajout de l'éleveur
 	var farmer = document.createElement('div');
-	farmer.innerHTML = '<a title="Éleveur" href="/farmer/' + $data.leek.farmer.id + '">' + $data.leek.farmer.name + '</a>';
+	farmer.innerHTML = '<a title="Éleveur" href="' + $data.leek.farmer.id + '">' + $data.leek.farmer.name + '</a>';
 	farmer.className = 'AT_tooltip_subname';
 	tooltip.appendChild(farmer);
 
@@ -1202,27 +1200,29 @@ function fill_farmer(tooltip, target, $data) {
 	// Si l'éleveur n'existe plus, on ne continue pas le tooltip
 	if (farmer_name == 'Éleveur supprimé') return;
 
+    // Ajout d'un lien pour envoyer un message
+	var send_message = document.createElement('div');
+	send_message.className = 'AT_send_message';
+	send_message.innerHTML = '<a title="Envoyer un message à ' + farmer_name
+		+ '" href="http://leekwars.com/messages/new/' + target.id
+		+ '"><img src="http://leekwars.com/static//image/messages.png" alt="Envoyer un message"></a>';
+	tooltip.appendChild(send_message);
+
 	// Ajout de l'équipe
 	var team = document.createElement('div');
+	team.className = 'AT_tooltip_subname';
 	if ($data.farmer.team != null) {
-		team.className = 'AT_tooltip_subname';
 		team.innerHTML = '<a title="Équipe" href="http://leekwars.com/team/' + $data.farmer.team.id + '">'
 			+ $data.farmer.team.name + '</a>';
-		}
+	} else {
+        team.innerHTML = "&nbsp;";
+    }
 	tooltip.appendChild(team);
 
 	// Ajout du conteneur de talent + ratio + nb poireaux
 	var AT_basic = document.createElement('div');
 	AT_basic.className = 'AT_basic';
 	tooltip.appendChild(AT_basic);
-
-	// Ajout d'un lien pour envoyer un message
-	var send_message = document.createElement('div');
-	send_message.className = 'AT_send_message';
-	send_message.innerHTML = '<a title="Envoyer un message à ' + farmer_name
-		+ '" href="http://leekwars.com/messages/new/' + target.id
-		+ '"><img src="http://leekwars.com/static//image/messages.png" alt="Envoyer un message"></a>';
-	AT_basic.appendChild(send_message);
 
 	// Ajout du talent
 	var talent = document.createElement('div');
@@ -1240,8 +1240,17 @@ function fill_farmer(tooltip, target, $data) {
 	talent.className = 'hover_talent';
 	AT_basic.appendChild(talent);
 
+    var tournament = document.createElement('div');
+    tournament.title = 'Tournois gagnés (solo - éleveur - équipe)';
+    tournament.className = 'hover_tournament';
+    tournament.innerHTML += $data.farmer.won_solo_tournaments
+        + ' - ' + $data.farmer.won_farmer_tournaments
+        + ' - ' + $data.farmer.won_team_tournaments;
+    AT_basic.appendChild(tournament);
+
 	// Ajout du ratio
 	var ratio = document.createElement('div');
+    ratio.title = 'Ratio';
 	ratio.innerHTML = $data.farmer.ratio;
 	ratio.className = 'ratio';
 	AT_basic.appendChild(ratio);
@@ -1308,7 +1317,7 @@ function fill_farmer(tooltip, target, $data) {
 					var mp = leek.mp;
 					var cores = leek.cores;
 
-					$('#farmer_leek_table_' + leek.id).append($('<td><a href="/leek/' + leek.id + '">' + name + '</td>\
+					$('#farmer_leek_table_' + leek.id).append($('<td><a href="/leek/' + id + '">' + name + '</td>\
 						<td>' + level + '</td><td>' + ratio + '</td><td>' + talent + '</td><td>' + life + '</td>\
 						<td>' + force + '</td><td>' + agility + '</td><td>' + wisdom + '</td><td>' + frequency + '</td>\
 						<td>' + tp + '</td><td>' + mp + '</td><td>' + cores + '</td>'));
