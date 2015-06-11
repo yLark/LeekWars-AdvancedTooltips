@@ -1,6 +1,6 @@
 ﻿// ==UserScript==
 // @name       		LeekWars AdvancedTooltips V2
-// @version			0.4.3
+// @version			0.4.4
 // @author			yLark, asmodai27, artorias
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @downloadURL   https://github.com/k-artorias/LeekWars-AdvancedTooltips/raw/master/AdvancedTooltips.user.js
@@ -1302,7 +1302,7 @@ function fill_farmer(tooltip, target, $data) {
 				$('#leeks_table_' + target.id).append($('<tr id="farmer_leek_table_' + id + '"></tr>'));
 
 				// Récupère les données du poireau
-				$.get('http://leekwars.com/api/leek/get/' + leek.id, function(leekdata) {
+				$.get('http://leekwars.com/api/leek/get/' + id, function(leekdata) {
 					var leek = leekdata.leek;
 					var name = leek.name;
 					var ratio = leek.ratio;
