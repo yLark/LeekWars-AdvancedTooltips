@@ -1302,7 +1302,7 @@ function fill_farmer(tooltip, target, $data) {
 				$('#leeks_table_' + target.id).append($('<tr id="farmer_leek_table_' + id + '"></tr>'));
 
 				// Récupère les données du poireau
-				$.get('http://leekwars.com/api/leek/get/' + id, function(leekdata) {
+				$.get('http://leekwars.com/api/leek/get/' + leek.id, function(leekdata) {
 					var leek = leekdata.leek;
 					var name = leek.name;
 					var ratio = leek.ratio;
@@ -1319,7 +1319,7 @@ function fill_farmer(tooltip, target, $data) {
 					var mp = leek.mp;
 					var cores = leek.cores;
 
-					$('#farmer_leek_table_' + leek.id).append($('<td><a href="/leek/' + id + '">' + name + '</td>\
+					$('#farmer_leek_table_' + leek.id).append($('<td><a href="/leek/' + leek.id + '">' + name + '</td>\
 						<td>' + level + '</td><td>' + ratio + '</td><td>' + talent + '</td><td>' + life + '</td>\
 						<td>' + force + '</td><td>' + agility + '</td><td>' + wisdom + '</td><td>' + frequency + '</td>\
 						<td>' + tp + '</td><td>' + mp + '</td><td>' + cores + '</td>'));
