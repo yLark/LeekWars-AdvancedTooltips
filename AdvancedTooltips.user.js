@@ -1,6 +1,6 @@
 ﻿// ==UserScript==
 // @name       		LeekWars AdvancedTooltips V2
-// @version			0.4.1
+// @version			0.4.2
 // @author			yLark, asmodai27, artorias
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @downloadURL   https://github.com/k-artorias/LeekWars-AdvancedTooltips/master/V2/AdvancedTooltips.user.js
