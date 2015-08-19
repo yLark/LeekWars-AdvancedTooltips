@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       		LeekWars AdvancedTooltips V2
-// @version			0.4.7
-// @author			yLark, asmodai27, artorias
+// @version			0.4.8
+// @author			yLark, asmodai27, artorias, amal
 // @description		Affiche une info-bulle au survol d'un lien pointant vers la page d'un poireau, d'un éleveur ou d'un rapport de combat
 // @downloadURL   https://github.com/k-artorias/LeekWars-AdvancedTooltips/raw/master/AdvancedTooltips.user.js
 // @updateURL     https://github.com/k-artorias/LeekWars-AdvancedTooltips/raw/master/AdvancedTooltips.user.js
@@ -121,11 +121,17 @@ addGlobalStyle('\
 .frequency {\
 	color: #b800b6;\
 }\
-.cores {\
-	color: #0000a2;\
+.resistance {\
+        color: #CC9900;\
 }\
-.widsom {\
-	color: black;\
+.science {\
+        color: #0033FF;\
+}\
+.magic {\
+        color: #9933CC;\
+}\
+.wisdom {\
+	color: #808080;\
 }\
 /* Fight report tooltip css*/\
 .hover_tooltip .report .name {\
@@ -407,7 +413,7 @@ function addGlobalStyle(css) {
 var display_method = 'mousestop'; //GM_getValue('advanced_tooltips_display_method', 'mousestop');
 
 // Délais d'affichage des tooltips
-var delay_before_display = 500; //GM_getValue('advanced_tooltips_delay_before_display', 250);
+var delay_before_display = 900; //GM_getValue('advanced_tooltips_delay_before_display', 250);
 
 // Contrôle qu'on a bien un entier positif
 if (isNaN(delay_before_display) || delay_before_display < 0) delay_before_display = 500;
@@ -816,7 +822,22 @@ var img = {
     88:'whip',
     89:'loam',
     91:'acceleration',
-    90:'fertilizer'
+    90:'fertilizer',
+    92:'slow_down',
+    94:'tranquilizer',
+    96:'solidification',
+    97:'venom',
+    100:'thorn',
+    102:'ferocity',
+    106:'fracture',
+    103:'collar',
+    98:'toxin',
+    93:'ball_and_chain',
+    105:'burning',
+    95:'soporific',
+    104:'bark',
+    101:'mirror',
+    99:'plague'
 };
 
 // Créé le contenu du tooltip leek
@@ -896,11 +917,17 @@ function fill_leek(tooltip, target, $data) {
 		+ '<img src="http://leekwars.com/static//image/carac/mp.png"/>'
 		+ $data.leek.mp + '</div>';
 	stats.innerHTML += '<div title="Sagesse" class="wisdom">'
-		+ '<img src="http://leekwars.com/static//image/carac/wisdom.png"/>'
+		+ '<img src="http://leekwars.com/static//image/charac/wisdom.png"/>'
 		+ $data.leek.wisdom + '</div>';
-	stats.innerHTML += '<div  title="Cœurs" class="cores">'
-		+ '<img src="http://leekwars.com/static//image/carac/cores.png"/>'
-		+ $data.leek.cores + '</div>';
+	stats.innerHTML += '<div  title="Résistance" class="resistance">'
+		+ '<img src="http://leekwars.com/static//image/charac/resistance.png"/>'
+		+ $data.leek.resistance + '</div>';
+    stats.innerHTML += '<div  title="Science" class="science">'
+		+ '<img src="http://leekwars.com/static//image/charac/science.png"/>'
+		+ $data.leek.science + '</div>';
+    stats.innerHTML += '<div  title="Magie" class="magic">'
+		+ '<img src="http://leekwars.com/static//image/charac/magic.png"/>'
+		+ $data.leek.magic + '</div>';
 	stats.innerHTML = stats.innerHTML.replace(/id=/g, 'class=');
 	tooltip.appendChild(stats);
 
@@ -924,67 +951,19 @@ function fill_leek(tooltip, target, $data) {
 	for (var i = 0; i < $data.leek.chips.length; i++) {
 		var c = $data.leek.chips[i].template;
 		chips.innerHTML += '<div style="display: inline-block; vertical-align: bottom; margin: 4px;">'
-			+ '<img style="width: 55px;vertical-align: bottom;" src="http://leekwars.com/static//image/chip/'
+			+ '<img style="width: 55px;vertical-align: bottom;" src="http://leekwars.com/static//image/chip/small/'
 			+ img[c] + '.png"/></div>';
 	}
 	chips.className = 'leek-chips';
 	tooltip.appendChild(chips);
 }
 
-function getCpuAndCombatId(leek, ai_times) {
-    if (ai_times == null) {
-        return [-1, -1];
-    }
+function buildSoloReport(tableData, bonus, fight_data_leeks) {
 
-    var cpu = -1;
-    var leekCombatId = -1;
-    for (var j = 0; j < ai_times.length; j++) {
-        if (ai_times[j].id == leek.id) {
-            cpu = ai_times[j].cpu_time;
-            leekCombatId = ai_times[j].fid;
-            break;
-        }
-    }
-
-    return [cpu, leekCombatId];
-}
-
-function getBulbsCpu(leekCombatId, fight_data_leeks, ai_times) {
-    if (ai_times == null) {
-        return [-1, -1];
-    }
-
-    var bulbcpu = 0;
-    var hasBulb = false;
-    for (var j = 0; j < fight_data_leeks.length; j++) {
-        var bulbId = -1;
-        if (fight_data_leeks[j].summon && fight_data_leeks[j].owner == leekCombatId) {
-            hasBulb = true;
-            bulbId = fight_data_leeks[j].id;
-            for (var k = 0; k < ai_times.length; k++) {
-                if (ai_times[k].fid == bulbId) {
-                    bulbcpu += ai_times[k].time;
-                }
-            }
-        }
-    }
-    if (hasBulb) {
-        return bulbcpu;
-    } else {
-        return -1;
-    }
-}
-
-function buildSoloReport(tableData, bonus, ai_times, fight_data_leeks) {
-	var table = '<table class="report"> <tbody><tr><th>Poireau</th><th>Niveau</th><th>XP</th><th class="gain">Talent</th><th class="gain">Habs</th><th>CPU time</th></tr>';
+	var table = '<table class="report"> <tbody><tr><th>Poireau</th><th>Niveau</th><th>XP</th><th class="gain">Talent</th><th class="gain">Habs</th></tr>';
 
 	for (var i = 0; i < tableData.length; i++) {
 		var leek = tableData[i];
-        var leekInfos = getCpuAndCombatId(leek, ai_times);
-		var cpu = leekInfos[0];
-        var leekCombatId = leekInfos[1];
-
-        var bulbcpu = getBulbsCpu(leekCombatId, fight_data_leeks, ai_times);
 
 		table += '<tr>'
 			+ '<td class="name">' + (leek.dead ? '<span class="dead"> </span>' : '')
@@ -999,8 +978,6 @@ function buildSoloReport(tableData, bonus, ai_times, fight_data_leeks) {
                 + nullSafe(leek.talent_gain, '') + '</td>'
 			+ '<td class="money" style="vertical-align:center;"><span>' + leek.money
 				+ ' <span class="hab"> </span></span></td>'
-			+ '<td>' + (cpu > -1 ? cpu + 'ms' : '')
-                + (bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
 			+ '</tr>';
 	}
 
@@ -1009,22 +986,17 @@ function buildSoloReport(tableData, bonus, ai_times, fight_data_leeks) {
 	return table;
 }
 
-function buildFarmerReport(farmerData, tableData, bonus, ai_times, fight_data_leeks) {
+function buildFarmerReport(farmerData, tableData, bonus, fight_data_leeks) {
 	var table = '<table class="report"> <tbody><tr><th>Éleveur</th><th>Talent</th></tr>';
 	table += '<tr><td><a href="http://leekwars.com/farmer/' + farmerData.id + '">' + farmerData.name
 		+ '</a></td>'
 		+ '<td>' + nullSafe(farmerData.talent, 0) + ' ' + (farmerData.talent_gain > 0 ? '+' : '')
 		+ nullSafe(farmerData.talent_gain, '') + '</td></tr></tbody></table>';
 
-	table += '<table class="report"> <tbody><tr><th>Poireau</th><th>Niveau</th><th>XP</th><th class="gain">Habs</th><th>CPU time</th></tr>';
+	table += '<table class="report"> <tbody><tr><th>Poireau</th><th>Niveau</th><th>XP</th><th class="gain">Habs</th></tr>';
 
 	for (var i = 0; i < tableData.length; i++) {
 		var leek = tableData[i];
-		var leekInfos = getCpuAndCombatId(leek, ai_times);
-		var cpu = leekInfos[0];
-        var leekCombatId = leekInfos[1];
-
-        var bulbcpu = getBulbsCpu(leekCombatId, fight_data_leeks, ai_times);
 
 		table += '<tr>'
 			+ '<td class="name">' + (leek.dead ? '<span class="dead"> </span>' : '')
@@ -1036,8 +1008,6 @@ function buildFarmerReport(farmerData, tableData, bonus, ai_times, fight_data_le
 				+ '</td>'
 			+ '<td class="money" style="vertical-align:center;"><span>' + leek.money
 				+ ' <span class="hab"> </span></span></td>'
-			+ '<td>' + (cpu > -1 ? cpu + 'ms' : '')
-                + (bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
 			+ '</tr>';
 	}
 
@@ -1050,7 +1020,7 @@ function nullSafe(data, defaultValue) {
 	return data != null ? data : defaultValue;
 }
 
-function buildTeamReport(teamData, tableData, bonus, ai_times, fight_data_leeks) {
+function buildTeamReport(teamData, tableData, bonus,fight_data_leeks) {
 	var table = '<table class="report"> <tbody><tr><th>Équipe</th><th>Niveau</th><th>XP</th><th>Talent</th></tr>';
 	table += '<tr><td><a href="http://leekwars.com/team/' + teamData.id + '">' + teamData.name + '</a></td>'
 		+ '<td>' + teamData.level + '</td>'
@@ -1058,15 +1028,10 @@ function buildTeamReport(teamData, tableData, bonus, ai_times, fight_data_leeks)
 		+ '<td>' + nullSafe(teamData.talent, 0) + ' ' + (teamData.talent_gain > 0 ? '+' : '')
 		+ nullSafe(teamData.talent_gain, '') + '</td></tr></tbody></table>';
 
-	table += '<table class="report"> <tbody><tr><th>Poireau</th><th>Niveau</th><th>XP</th><th class="gain">Habs</th><th>CPU time</th></tr>';
+	table += '<table class="report"> <tbody><tr><th>Poireau</th><th>Niveau</th><th>XP</th><th class="gain">Habs</th></tr>';
 
 	for (var i = 0; i < tableData.length; i++) {
 		var leek = tableData[i];
-		var leekInfos = getCpuAndCombatId(leek, ai_times);
-		var cpu = leekInfos[0];
-        var leekCombatId = leekInfos[1];
-
-        var bulbcpu = getBulbsCpu(leekCombatId, fight_data_leeks, ai_times);
 
 		table += '<tr>'
 			+ '<td class="name">' + (leek.dead ? '<span class="dead"> </span>' : '')
@@ -1078,8 +1043,6 @@ function buildTeamReport(teamData, tableData, bonus, ai_times, fight_data_leeks)
 				+ '</td>'
 			+ '<td class="money" style="vertical-align:center;"><span>' + leek.money
 				+ ' <span class="hab"> </span></span></td>'
-			+ '<td>' + (cpu > -1 ? cpu + 'ms' : '')
-                + (bulbcpu > -1 ? ' (<span class="bulb"> </span>'+ bulbcpu + 'ms)' : '') + '</td>'
 			+ '</tr>';
 	}
 
@@ -1114,18 +1077,17 @@ function fill_report(tooltip, target, $data) {
 	var losers;
 	var nbleeks = $data.fight.report.leeks1.length + $data.fight.report.leeks2.length;
 
-	if ($data.fight.type == 'solo') {
+	if ($data.fight.type == 0) {
+
 		var winData = $data.fight.report.leeks1;
 		var loseData = $data.fight.report.leeks2;
 		if ($data.fight.report.win == 2) {
 			winData = $data.fight.report.leeks2;
 			loseData = $data.fight.report.leeks1;
 		}
-		winners = buildSoloReport(winData, $data.fight.report.bonus, $data.fight.report.ai_times,
-            $data.fight.data.leeks);
-		losers = buildSoloReport(loseData, $data.fight.report.bonus, $data.fight.report.ai_times,
-         $data.fight.data.leeks);
-	} else if ($data.fight.type == 'farmer') {
+		winners = buildSoloReport(winData, $data.fight.report.bonus, $data.fight.data.leeks);
+		losers = buildSoloReport(loseData, $data.fight.report.bonus, $data.fight.data.leeks);
+	} else if ($data.fight.type == 1) {
 		var winData = $data.fight.report.leeks1;
 		var winFarmerData = $data.fight.report.farmer1;
 		var loseData = $data.fight.report.leeks2;
@@ -1140,7 +1102,7 @@ function fill_report(tooltip, target, $data) {
             $data.fight.data.leeks);
 		losers = buildFarmerReport(loseFarmerData, loseData, $data.fight.report.bonus, $data.fight.report.ai_times,
             $data.fight.data.leeks);
-	}  else if ($data.fight.type == 'team') {
+	}  else if ($data.fight.type == 2) {
 		var winData = $data.fight.report.leeks1;
 		var winFarmerData = $data.fight.report.team1;
 		var loseData = $data.fight.report.leeks2;
@@ -1274,12 +1236,14 @@ function fill_farmer(tooltip, target, $data) {
 		   <th><img src="http://leekwars.com/static//image/talent.png" alt="Talent" title="Talent"></img></th>\
 		   <th><img src="http://leekwars.com/static/image/icon_life.png" alt="Points de vie" title="Points de vie"></img></th>\
 		   <th><img src="http://leekwars.com/static/image/icon_strength.png" alt="Force" title="Force"></img></th>\
+<th><img src="http://leekwars.com/static//image/charac/wisdom.png" alt="Sagesse" title="Sagesse"></img></th>\
 		   <th><img src="http://leekwars.com/static/image/icon_agility.png" alt="Agilit&eacute;" title="Agilit&eacute;"></img></th>\
-		   <th><img src="http://leekwars.com/static/image/icon_widsom.png" alt="Sagesse" title="Sagesse"></img></th>\
+<th><img src="http://leekwars.com/static//image/charac/resistance.png" alt="R&eacute;sistance" title="R&eacute;sistance"></img></th>\
+<th><img src="http://leekwars.com/static//image/charac/science.png" alt="Science" title="Science"></img></th>\
+<th><img src="http://leekwars.com/static//image/charac/magic.png" alt="Magic" title="Magic"></img></th>\
 		   <th><img src="http://leekwars.com/static/image/icon_frequency.png" alt="Fr&eacute;quence" title="Fr&eacute;quence"></img></th>\
 		   <th><img src="http://leekwars.com/static/image/icon_tp.png" alt="Points de tour" title="Points de tour"></img></th>\
 		   <th><img src="http://leekwars.com/static/image/icon_mp.png" alt="Points de mouvement" title="Points de mouvement"></img></th>\
-		   <th><img src="http://leekwars.com/static/image/icon_cores.png" alt="C&oelig;urs" title="C&oelig;urs"></img></th>\
 		</tr></tbody></table>';
 
 		var leek_no = 0,
@@ -1293,7 +1257,9 @@ function fill_farmer(tooltip, target, $data) {
 			avgFreq = 0,
 			avgTP = 0,
 			avgMP = 0,
-			avgCores = 0;
+			avgResi = 0,
+            avgScience = 0,
+            avgMagic = 0;
 
 		// Extraction des caractéristiques des leeks
 		var leeks = $data.farmer.leeks;
@@ -1321,12 +1287,15 @@ function fill_farmer(tooltip, target, $data) {
 					var frequency = leek.frequency;
 					var tp = leek.tp;
 					var mp = leek.mp;
-					var cores = leek.cores;
+					var resi = leek.resistance;
+                    var science = leek.science;
+                    var magic = leek.magic;
 
 					$('#farmer_leek_table_' + leek.id).append($('<td><a href="/leek/' + leek.id + '">' + name + '</td>\
 						<td>' + level + '</td><td>' + ratio + '</td><td>' + talent + '</td><td>' + life + '</td>\
-						<td>' + force + '</td><td>' + agility + '</td><td>' + wisdom + '</td><td>' + frequency + '</td>\
-						<td>' + tp + '</td><td>' + mp + '</td><td>' + cores + '</td>'));
+						<td>' + force + '</td><td>' + wisdom + '</td><td>' + agility + '</td><td>' + resi + '</td><td>' + science + '</td>\
+                        <td>' + magic + '</td><td>' + frequency + '</td>\
+						<td>' + tp + '</td><td>' + mp + '</td>'));
 
 					leek_no++;
 					avgLevel = (avgLevel * (leek_no - 1) + Math.floor(level)) / leek_no;
@@ -1340,19 +1309,23 @@ function fill_farmer(tooltip, target, $data) {
 					avgFreq = (avgFreq * (leek_no - 1) + Math.floor(frequency)) / leek_no;
 					avgTP = (avgTP * (leek_no - 1) + Math.floor(tp)) / leek_no;
 					avgMP = (avgMP * (leek_no - 1) + Math.floor(mp)) / leek_no;
-					avgCores = (avgCores * (leek_no - 1) + Math.floor(cores)) / leek_no;
+					avgResi = (avgResi * (leek_no - 1) + Math.floor(resi)) / leek_no;
+                    avgScience = (avgScience * (leek_no - 1) + Math.floor(science)) / leek_no;
+                    avgMagic = (avgMagic * (leek_no - 1) + Math.floor(magic)) / leek_no;
 
 					$('#leeks_table_' + target.id + ' td#avg_level').html(Math.floor(avgLevel));
 					$('#leeks_table_' + target.id + ' td#avg_ratio').html(Math.floor(avgRatio * 100) / 100);
 					$('#leeks_table_' + target.id + ' td#avg_talent').html(Math.floor(avgTalent));
 					$('#leeks_table_' + target.id + ' td#avg_life').html(Math.floor(avgLife));
 					$('#leeks_table_' + target.id + ' td#avg_force').html(Math.floor(avgForce));
+                    $('#leeks_table_' + target.id + ' td#avg_wisdom').html(Math.floor(avgWisdom));
 					$('#leeks_table_' + target.id + ' td#avg_agility').html(Math.floor(avgAgility));
-					$('#leeks_table_' + target.id + ' td#avg_wisdom').html(Math.floor(avgWisdom));
+                    $('#leeks_table_' + target.id + ' td#avg_resi').html(Math.floor(avgResi));
+                    $('#leeks_table_' + target.id + ' td#avg_science').html(Math.floor(avgScience));
+                    $('#leeks_table_' + target.id + ' td#avg_magic').html(Math.floor(avgMagic));
 					$('#leeks_table_' + target.id + ' td#avg_freq').html(Math.floor(avgFreq));
 					$('#leeks_table_' + target.id + ' td#avg_tp').html(Math.floor(avgTP * 10) / 10);
 					$('#leeks_table_' + target.id + ' td#avg_mp').html(Math.floor(avgMP * 10) / 10);
-					$('#leeks_table_' + target.id + ' td#avg_cores').html(Math.floor(avgCores * 10) / 10);
 
 				}, 'json');
 			}
@@ -1360,8 +1333,8 @@ function fill_farmer(tooltip, target, $data) {
 
 		// Ajout d'une ligne de sommes / moyennes
 		$('#leeks_table_' + target.id).append($('<tr class="total"><td>Moyennes</td><td id="avg_level">0</td><td id="avg_ratio">0</td><td id="avg_talent">0</td>\
-<td id="avg_life">0</td><td id="avg_force">0</td><td id="avg_agility">0</td><td id="avg_wisdom">0</td><td id="avg_freq">0</td><td id="avg_tp">0</td><td id="avg_mp">0</td>\
-<td id="avg_cores">0</td></tr>'));
+<td id="avg_life">0</td><td id="avg_force">0</td><td id="avg_wisdom">0</td><td id="avg_agility">0</td><td id="avg_resi">0</td><td id="avg_science">0</td>\
+<td id="avg_magic">0<td id="avg_freq">0</td><td id="avg_tp">0</td><td id="avg_mp">0</td>'));
 	}
 }
 
